@@ -1,6 +1,5 @@
 package com.example.dikidi.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,43 +19,50 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.dikidi.R
 import com.example.dikidi.ui.theme.DikidiTheme
+import kotlinx.coroutines.launch
 
 @Preview
 @Composable
@@ -86,90 +92,365 @@ fun MainScreen() {
         mutableStateOf("")
     }
 
-    val mainScrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    val salesState = rememberLazyListState()
+
+    val salesNestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                scope.launch {
+                    if (available.x <= 0) { // scrolling forward
+                        if (available.x >= -40 && salesState.firstVisibleItemIndex != salesState.layoutInfo.totalItemsCount - 1)
+                            salesState.animateScrollToItem(salesState.firstVisibleItemIndex + 1)
+                    } else
+                        if (available.x <= 40)
+                            salesState.animateScrollToItem(salesState.firstVisibleItemIndex)
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
+    val popularState = rememberLazyListState()
+
+    val popularNestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                scope.launch {
+                    if (available.x <= 0) { // scrolling forward
+                        if (available.x >= -40 && popularState.firstVisibleItemIndex != popularState.layoutInfo.totalItemsCount - 1)
+                            popularState.animateScrollToItem(popularState.firstVisibleItemIndex + 1)
+                    } else
+                        if (available.x <= 40)
+                            popularState.animateScrollToItem(popularState.firstVisibleItemIndex)
+                }
+                return Offset.Zero
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 color = MaterialTheme.colorScheme.primary
             )
-            .verticalScroll(mainScrollState)
+            .verticalScroll(rememberScrollState())
     ) {
         Header(searchBarValue)
 
         Categories(categories)
 
+        Masters(categories)
+        Sales(salesState, salesNestedScrollConnection, categories)
+
         Text(
             modifier = Modifier.padding(16.dp),
-            text = "Премиум",
+            text = "Популярные",
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onPrimary
         )
 
-        Column(
+        LazyRow(
+            state = popularState,
             modifier = Modifier
-                .wrapContentHeight()
-                .padding(horizontal = 16.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.secondary)
+                .fillMaxWidth()
+                .nestedScroll(popularNestedScrollConnection),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            categories.forEach{
+            items(categories) {
                 Row(
                     modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth(),
+                        .fillParentMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.secondary)
+                        .padding(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(80.dp)
                             .clip(RoundedCornerShape(16.dp)),
                         contentScale = ContentScale.Crop,
                         painter = painterResource(id = it.imgResId),
                         contentDescription = "Image of master"
                     )
                     Column(
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = 14.dp)
                     ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = it.name,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondary,
+                                maxLines = 1,
+                                fontWeight = FontWeight.Bold,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_star),
+                                contentDescription = "Icon star",
+                                tint = Color.Yellow
+                            )
+                        }
                         Text(
-                            modifier = Modifier.padding(horizontal = 14.dp),
                             text = it.name,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimary,
-                            maxLines = 2,
+                            maxLines = 1,
                             fontWeight = FontWeight.Bold,
                             overflow = TextOverflow.Ellipsis
                         )
                         Text(
-                            modifier = Modifier.padding(horizontal = 14.dp),
                             text = it.name,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            maxLines = 2,
+                            color = MaterialTheme.colorScheme.onSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = it.name,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            maxLines = 1,
+                            fontWeight = FontWeight.Bold,
                             overflow = TextOverflow.Ellipsis
                         )
                     }
-                    Text(
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Sales(
+    salesState: LazyListState,
+    salesNestedScrollConnection: NestedScrollConnection,
+    services: List<Category>,
+) {
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = "Акции",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onPrimary
+    )
+
+    LazyRow(
+        state = salesState,
+        modifier = Modifier
+            .fillMaxWidth()
+            .nestedScroll(salesNestedScrollConnection),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(services) {
+            Column(
+                modifier = Modifier
+                    .fillParentMaxWidth(0.99f)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(color = MaterialTheme.colorScheme.secondary)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .height(160.dp)
+                        .fillMaxWidth()
+                ) {
+                    Image(
                         modifier = Modifier
-                            .border(
-                                1.dp,
-                                MaterialTheme.colorScheme.tertiary,
-                                shape = RoundedCornerShape(14.dp)
+                            .fillMaxSize(),
+                        painter = painterResource(id = it.imgResId),
+                        contentDescription = "Service image",
+                        contentScale = ContentScale.Crop
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.secondary.copy(
+                                        0.5f
+                                    )
+                                )
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                            text = String.format("d%%", 10),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.secondary.copy(
+                                        0.7f
+                                    )
+                                )
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            text = buildAnnotatedString {
+                                append("до: ")
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append("some")
+                                }
+                            },
+                        )
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    MaterialTheme.colorScheme.secondary.copy(
+                                        0.7f
+                                    )
+                                )
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(16.dp),
+                                painter = painterResource(id = R.drawable.ic_eye),
+                                contentDescription = "Icon eye",
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
-                            .padding(16.dp),
-                        text = "Записаться",
+                            Text(
+                                text = "7",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                            )
+                        }
+                    }
+                }
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = it.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 2,
+                        fontWeight = FontWeight.Bold,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Image(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(8.dp)),
+                            contentScale = ContentScale.Crop,
+                            painter = painterResource(id = it.imgResId),
+                            contentDescription = "Service logo"
+                        )
+                        Column {
+                            Text(
+                                text = it.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                maxLines = 1,
+                                fontWeight = FontWeight.Bold,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Text(
+                                text = it.name,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSecondary,
+                                maxLines = 1,
+                                fontWeight = FontWeight.Bold,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun Masters(masters: List<Category>) {
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = "Премиум",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onPrimary
+    )
+
+    Column(
+        modifier = Modifier
+            .wrapContentHeight()
+            .padding(horizontal = 16.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.secondary)
+    ) {
+        masters.forEach {
+            Row(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop,
+                    painter = painterResource(id = it.imgResId),
+                    contentDescription = "Image of master"
+                )
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                        text = it.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 2,
+                        fontWeight = FontWeight.Bold,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                        text = it.name,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                Divider(
+                Text(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    thickness = 1.dp,
-                    color = MaterialTheme.colorScheme.primary
+                        .border(
+                            1.dp,
+                            MaterialTheme.colorScheme.tertiary,
+                            shape = RoundedCornerShape(14.dp)
+                        )
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    text = "Записаться",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.tertiary
                 )
             }
+            Divider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
@@ -225,14 +506,16 @@ private fun Header(searchBarValue: MutableState<String>) {
             .height(IntrinsicSize.Min)
     ) {
         Image(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .matchParentSize(),
             contentScale = ContentScale.Crop,
             painter = painterResource(id = R.drawable.img_home_head_bg),
             contentDescription = "Header background"
         )
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 25.dp)
         ) {
             Text(
