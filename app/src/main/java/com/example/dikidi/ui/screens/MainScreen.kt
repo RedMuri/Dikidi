@@ -138,89 +138,133 @@ fun MainScreen() {
     ) {
         Header(searchBarValue)
 
-        Categories(categories)
+        /*Categories(categories)
 
         Masters(categories)
+
         Sales(salesState, salesNestedScrollConnection, categories)
 
-        Text(
-            modifier = Modifier.padding(16.dp),
-            text = "Популярные",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onPrimary
-        )
+        Popular(popularState, popularNestedScrollConnection, categories)
+*/
+        Certificates()
+    }
+}
 
-        LazyRow(
-            state = popularState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .nestedScroll(popularNestedScrollConnection),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(categories) {
-                Row(
+@Composable
+private fun Certificates() {
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = "Сертификаты",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onPrimary
+    )
+    Image(
+        modifier = Modifier.fillMaxWidth(),
+        contentScale = ContentScale.Crop,
+        painter = painterResource(id = R.drawable.img_certificates),
+        contentDescription = "Image certificates"
+    )
+    Spacer(modifier = Modifier.height(8.dp))
+    Text(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.tertiary,
+                shape = RoundedCornerShape(14.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        text = "Выбрать сертификат",
+        textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.tertiary
+    )
+}
+
+@Composable
+private fun Popular(
+    popularState: LazyListState,
+    popularNestedScrollConnection: NestedScrollConnection,
+    categories: List<Category>,
+) {
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = "Популярные",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onPrimary
+    )
+
+    LazyRow(
+        state = popularState,
+        modifier = Modifier
+            .fillMaxWidth()
+            .nestedScroll(popularNestedScrollConnection),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) {
+            Row(
+                modifier = Modifier
+                    .fillParentMaxWidth()
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.secondary)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
                     modifier = Modifier
-                        .fillParentMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.secondary)
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop,
+                    painter = painterResource(id = it.imgResId),
+                    contentDescription = "Image of master"
+                )
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 14.dp)
                 ) {
-                    Image(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .clip(RoundedCornerShape(16.dp)),
-                        contentScale = ContentScale.Crop,
-                        painter = painterResource(id = it.imgResId),
-                        contentDescription = "Image of master"
-                    )
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 14.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = it.name,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSecondary,
-                                maxLines = 1,
-                                fontWeight = FontWeight.Bold,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_star),
-                                contentDescription = "Icon star",
-                                tint = Color.Yellow
-                            )
-                        }
-                        Text(
-                            text = it.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary,
-                            maxLines = 1,
-                            fontWeight = FontWeight.Bold,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Text(
-                            text = it.name,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
                         Text(
                             text = it.name,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.tertiary,
+                            color = MaterialTheme.colorScheme.onSecondary,
                             maxLines = 1,
                             fontWeight = FontWeight.Bold,
                             overflow = TextOverflow.Ellipsis
                         )
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_star),
+                            contentDescription = "Icon star",
+                            tint = Color.Yellow
+                        )
                     }
+                    Text(
+                        text = it.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 1,
+                        fontWeight = FontWeight.Bold,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = it.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = it.name,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        maxLines = 1,
+                        fontWeight = FontWeight.Bold,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
         }
