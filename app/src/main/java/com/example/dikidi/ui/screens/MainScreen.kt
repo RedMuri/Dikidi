@@ -1,7 +1,9 @@
 package com.example.dikidi.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,16 +20,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -38,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -76,19 +85,92 @@ fun MainScreen() {
     val searchBarValue = remember {
         mutableStateOf("")
     }
+
+    val mainScrollState = rememberScrollState()
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 color = MaterialTheme.colorScheme.primary
             )
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(mainScrollState)
     ) {
         Header(searchBarValue)
 
         Categories(categories)
 
+        Text(
+            modifier = Modifier.padding(16.dp),
+            text = "Премиум",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onPrimary
+        )
 
+        Column(
+            modifier = Modifier
+                .wrapContentHeight()
+                .padding(horizontal = 16.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.secondary)
+        ) {
+            categories.forEach{
+                Row(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(RoundedCornerShape(16.dp)),
+                        contentScale = ContentScale.Crop,
+                        painter = painterResource(id = it.imgResId),
+                        contentDescription = "Image of master"
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 14.dp),
+                            text = it.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 2,
+                            fontWeight = FontWeight.Bold,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            modifier = Modifier.padding(horizontal = 14.dp),
+                            text = it.name,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                    Text(
+                        modifier = Modifier
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.tertiary,
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            .padding(16.dp),
+                        text = "Записаться",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.tertiary
+                    )
+                }
+                Divider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
     }
 }
 
@@ -114,8 +196,7 @@ private fun Categories(categories: List<Category>) {
                     .width(180.dp)
                     .clip(RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
-            )
-            {
+            ) {
                 Image(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
@@ -198,8 +279,7 @@ private fun RowScope.SearchForm(
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyLarge
     ) { innerTextField ->
-        TextFieldDefaults.TextFieldDecorationBox(
-            value = query.value,
+        TextFieldDefaults.TextFieldDecorationBox(value = query.value,
             visualTransformation = VisualTransformation.None,
             innerTextField = innerTextField,
             singleLine = true,
@@ -231,7 +311,6 @@ private fun RowScope.SearchForm(
                     contentDescription = "Icon search",
                     tint = MaterialTheme.colorScheme.onSecondary
                 )
-            }
-        )
+            })
     }
 }
