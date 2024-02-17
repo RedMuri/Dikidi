@@ -1,5 +1,6 @@
 package com.example.dikidi.ui.screens
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,10 +23,14 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -77,6 +82,7 @@ data class Category(
     val imgResId: Int,
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen() {
     val categories = listOf(
@@ -145,9 +151,57 @@ fun MainScreen() {
         Sales(salesState, salesNestedScrollConnection, categories)
 
         Popular(popularState, popularNestedScrollConnection, categories)
-*/
+
         Certificates()
+*/
+        ServiceExamples(categories)
     }
+}
+
+@Composable
+@OptIn(ExperimentalFoundationApi::class)
+private fun ServiceExamples(categories: List<Category>) {
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = "Примеры работ",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onPrimary
+    )
+
+    LazyHorizontalStaggeredGrid(
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        rows = StaggeredGridCells.Fixed(2),
+        horizontalItemSpacing = 8.dp,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) {
+            Image(
+                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                painter = painterResource(id = it.imgResId),
+                contentDescription = "Example of work",
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+    Spacer(modifier = Modifier.height(16.dp))
+    Text(
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .fillMaxWidth()
+            .border(
+                1.dp,
+                MaterialTheme.colorScheme.tertiary,
+                shape = RoundedCornerShape(14.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        text = "Посмотреть",
+        textAlign = TextAlign.Center,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.tertiary
+    )
 }
 
 @Composable
