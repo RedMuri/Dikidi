@@ -69,4 +69,5 @@ dependencies {
     debugImplementation(libs.ui.test.manifest)
 
     implementation(libs.accompanist.insets)
+    implementation(libs.androidx.ui.util)
 }
