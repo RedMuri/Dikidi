@@ -1,22 +1,15 @@
 package com.example.dikidi.ui.screens
 
-import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,11 +19,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -40,24 +31,11 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -74,7 +52,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -84,6 +61,11 @@ import com.example.dikidi.R
 import com.example.dikidi.ui.theme.DikidiTheme
 import kotlinx.coroutines.launch
 
+data class Category(
+    val name: String,
+    val imgResId: Int,
+)
+
 @Preview
 @Composable
 private fun Preview() {
@@ -92,12 +74,6 @@ private fun Preview() {
     }
 }
 
-data class Category(
-    val name: String,
-    val imgResId: Int,
-)
-
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val categories = listOf(
@@ -150,51 +126,35 @@ fun MainScreen() {
         }
     }
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                color = MaterialTheme.colorScheme.primary
-            )
-    ) {
-        item {
-            Header(searchBarValue)
-        }
-        item {
-            Categories(categories)
-        }
-        item {
-            Masters(categories)
-        }
-        item {
-            Sales(salesState, salesNestedScrollConnection, categories)
-        }
-        item {
-            Popular(popularState, popularNestedScrollConnection, categories)
-        }
-        item {
-            Certificates()
-        }
-        item {
-            ServiceExamples(categories)
-        }
-        item {
-            NewItems(categories)
-        }
+    val mainScrollState: ScrollState = rememberScrollState(0)
 
+    CollapsingToolbar(
+        scrollState = mainScrollState,
+        searchQuery = searchBarValue,
+        locationName = "Ярославль"
+    ) {
+        Categories(categories)
+
+        Masters(categories)
+
+        Sales(salesState, salesNestedScrollConnection, categories)
+
+        Popular(popularState, popularNestedScrollConnection, categories)
+
+        Certificates()
+
+        ServiceExamples(categories)
+
+        NewItems(categories)
     }
 }
+
 
 @Composable
 private fun NewItems(
     categories: List<Category>,
 ) {
-    Text(
-        modifier = Modifier.padding(16.dp),
-        text = "Новые",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onPrimary
-    )
+    BlockTitle("Новые")
 
     LazyRow(
         modifier = Modifier
@@ -248,12 +208,7 @@ private fun NewItems(
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
 private fun ServiceExamples(categories: List<Category>) {
-    Text(
-        modifier = Modifier.padding(16.dp),
-        text = "Примеры работ",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onPrimary
-    )
+    BlockTitle("Примеры работ")
 
     LazyHorizontalStaggeredGrid(
         contentPadding = PaddingValues(horizontal = 16.dp),
@@ -295,12 +250,8 @@ private fun ServiceExamples(categories: List<Category>) {
 
 @Composable
 private fun Certificates() {
-    Text(
-        modifier = Modifier.padding(16.dp),
-        text = "Сертификаты",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onPrimary
-    )
+    BlockTitle("Сертификаты")
+
     Image(
         modifier = Modifier.fillMaxWidth(),
         contentScale = ContentScale.Crop,
@@ -331,12 +282,7 @@ private fun Popular(
     popularNestedScrollConnection: NestedScrollConnection,
     categories: List<Category>,
 ) {
-    Text(
-        modifier = Modifier.padding(16.dp),
-        text = "Популярные",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onPrimary
-    )
+    BlockTitle("Популярные")
 
     LazyRow(
         state = popularState,
@@ -420,12 +366,7 @@ private fun Sales(
     salesNestedScrollConnection: NestedScrollConnection,
     services: List<Category>,
 ) {
-    Text(
-        modifier = Modifier.padding(16.dp),
-        text = "Акции",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onPrimary
-    )
+    BlockTitle("Акции")
 
     LazyRow(
         state = salesState,
@@ -568,12 +509,7 @@ private fun Sales(
 
 @Composable
 private fun Masters(masters: List<Category>) {
-    Text(
-        modifier = Modifier.padding(16.dp),
-        text = "Премиум",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onPrimary
-    )
+    BlockTitle("Премиум")
 
     Column(
         modifier = Modifier
@@ -644,12 +580,7 @@ private fun Masters(masters: List<Category>) {
 
 @Composable
 private fun Categories(categories: List<Category>) {
-    Text(
-        modifier = Modifier.padding(16.dp),
-        text = "Категории",
-        style = MaterialTheme.typography.bodyLarge,
-        color = MaterialTheme.colorScheme.onPrimary
-    )
+    BlockTitle("Категории")
     LazyHorizontalGrid(
         modifier = Modifier.height(220.dp),
         rows = GridCells.Fixed(2),
@@ -686,101 +617,11 @@ private fun Categories(categories: List<Category>) {
 }
 
 @Composable
-private fun Header(searchBarValue: MutableState<String>) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Min)
-    ) {
-        Image(
-            modifier = Modifier
-                .fillMaxWidth()
-                .matchParentSize(),
-            contentScale = ContentScale.Crop,
-            painter = painterResource(id = R.drawable.img_home_head_bg),
-            contentDescription = "Header background"
-        )
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 25.dp)
-        ) {
-            Text(
-                text = "Онлайн-запись",
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Text(
-                text = "Ярославль >",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SearchForm(query = searchBarValue)
-                Icon(
-                    modifier = Modifier.size(30.dp),
-                    painter = painterResource(id = R.drawable.ic_location),
-                    contentDescription = "Icon search",
-                    tint = MaterialTheme.colorScheme.secondary
-                )
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun RowScope.SearchForm(
-    query: MutableState<String>,
-) {
-    BasicTextField(
-        value = query.value,
-        onValueChange = { query.value = it },
-        modifier = Modifier
-            .weight(1f)
-            .height(44.dp),
-        singleLine = true,
-        textStyle = MaterialTheme.typography.bodyLarge
-    ) { innerTextField ->
-        TextFieldDefaults.TextFieldDecorationBox(value = query.value,
-            visualTransformation = VisualTransformation.None,
-            innerTextField = innerTextField,
-            singleLine = true,
-            enabled = true,
-            shape = RoundedCornerShape(16.dp),
-            interactionSource = MutableInteractionSource(),
-            contentPadding = PaddingValues(horizontal = 20.dp),
-            placeholder = {
-                Text(
-                    text = "Услуга, специалист или место",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondary,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            colors = TextFieldDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent
-            ),
-            leadingIcon = {
-                Icon(
-                    modifier = Modifier
-                        .padding(start = 12.dp)
-                        .size(24.dp),
-                    painter = painterResource(id = R.drawable.ic_search),
-                    contentDescription = "Icon search",
-                    tint = MaterialTheme.colorScheme.onSecondary
-                )
-            })
-    }
+fun BlockTitle(title: String) {
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = title,
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onPrimary
+    )
 }

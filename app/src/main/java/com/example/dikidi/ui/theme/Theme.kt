@@ -17,10 +17,10 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = LightGray,
-    onPrimary = Black,
-    secondary = White,
-    onSecondary = Gray,
+    primary = Black,
+    onPrimary = LightGray,
+    secondary = Gray,
+    onSecondary = White,
     tertiary = LightBlue
 )
 
@@ -62,8 +62,8 @@ fun DikidiTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            window.statusBarColor = Color.Transparent.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 
