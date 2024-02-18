@@ -1,5 +1,10 @@
 package com.example.dikidi.ui.screens
 
+import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -19,7 +24,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -35,12 +42,20 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
@@ -82,7 +97,7 @@ data class Category(
     val imgResId: Int,
 )
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val categories = listOf(
@@ -134,27 +149,99 @@ fun MainScreen() {
             }
         }
     }
-    Column(
+
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 color = MaterialTheme.colorScheme.primary
             )
-            .verticalScroll(rememberScrollState())
     ) {
-        Header(searchBarValue)
+        item {
+            Header(searchBarValue)
+        }
+        item {
+            Categories(categories)
+        }
+        item {
+            Masters(categories)
+        }
+        item {
+            Sales(salesState, salesNestedScrollConnection, categories)
+        }
+        item {
+            Popular(popularState, popularNestedScrollConnection, categories)
+        }
+        item {
+            Certificates()
+        }
+        item {
+            ServiceExamples(categories)
+        }
+        item {
+            NewItems(categories)
+        }
 
-        /*Categories(categories)
+    }
+}
 
-        Masters(categories)
+@Composable
+private fun NewItems(
+    categories: List<Category>,
+) {
+    Text(
+        modifier = Modifier.padding(16.dp),
+        text = "Новые",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onPrimary
+    )
 
-        Sales(salesState, salesNestedScrollConnection, categories)
-
-        Popular(popularState, popularNestedScrollConnection, categories)
-
-        Certificates()
-*/
-        ServiceExamples(categories)
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) {
+            Row(
+                modifier = Modifier
+                    .width(250.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.secondary)
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop,
+                    painter = painterResource(id = it.imgResId),
+                    contentDescription = "Image of master"
+                )
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 14.dp)
+                ) {
+                    Text(
+                        text = it.name,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        maxLines = 2,
+                        fontWeight = FontWeight.Bold,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = it.name,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -179,7 +266,9 @@ private fun ServiceExamples(categories: List<Category>) {
     ) {
         items(categories) {
             Image(
-                modifier = Modifier.clip(RoundedCornerShape(16.dp)),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(16.dp))
+                    .widthIn(100.dp, 260.dp),
                 painter = painterResource(id = it.imgResId),
                 contentDescription = "Example of work",
                 contentScale = ContentScale.Crop
