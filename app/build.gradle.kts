@@ -80,4 +80,6 @@ dependencies {
 
     implementation (libs.dagger)
     kapt(libs.dagger.compiler)
+
+    implementation(libs.androidx.navigation.compose)
 }

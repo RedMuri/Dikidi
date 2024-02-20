@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Dikidi</string>
+
+
+    <string name="navigation_item_home">Главная</string>
+    <string name="navigation_item_catalog">Каталог</string>
+    <string name="navigation_item_sales">Акции</string>
+    <string name="navigation_item_notes">Мои записи</string>
+    <string name="navigation_item_more">Еще</string>
 </resources>

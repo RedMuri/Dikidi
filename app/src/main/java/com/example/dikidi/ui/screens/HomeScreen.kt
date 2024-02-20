@@ -78,12 +78,14 @@ import kotlinx.coroutines.launch
 @Composable
 private fun Preview() {
     DikidiTheme {
-        MainScreen()
+        HomeScreen(PaddingValues())
     }
 }
 
 @Composable
-fun MainScreen() {
+fun HomeScreen(
+    paddingValues: PaddingValues
+) {
 
     val context = LocalContext.current
     val viewModel: HomeViewModel = viewModel(
@@ -118,7 +120,7 @@ fun MainScreen() {
     ) {
         when (val currentState = state.value) {
             is HomeState.Content -> {
-               Column(Modifier.verticalScroll(mainScrollState)) {
+               Column(Modifier.verticalScroll(mainScrollState).padding(paddingValues)) {
                     val categories = currentState.data.data.blocks.catalog
                     val vip = currentState.data.data.blocks.vip
                     val shares = currentState.data.data.blocks.shares.list
