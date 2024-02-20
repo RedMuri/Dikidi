@@ -8,6 +8,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -84,7 +85,7 @@ private fun Preview() {
 
 @Composable
 fun HomeScreen(
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
 ) {
 
     val context = LocalContext.current
@@ -116,30 +117,29 @@ fun HomeScreen(
     CollapsingToolbar(
         scrollState = mainScrollState,
         searchQuery = searchBarValue,
+        paddingValues = paddingValues,
         locationName = "Ярославль"
     ) {
         when (val currentState = state.value) {
             is HomeState.Content -> {
-               Column(Modifier.verticalScroll(mainScrollState).padding(paddingValues)) {
-                    val categories = currentState.data.data.blocks.catalog
-                    val vip = currentState.data.data.blocks.vip
-                    val shares = currentState.data.data.blocks.shares.list
-                    val popular = currentState.data.data.blocks.catalog
-                    val examples = currentState.data.data.blocks.examples
-                    val new = currentState.data.data.blocks.catalog
+                val categories = currentState.data.data.blocks.catalog
+                val vip = currentState.data.data.blocks.vip
+                val shares = currentState.data.data.blocks.shares.list
+                val popular = currentState.data.data.blocks.catalog
+                val examples = currentState.data.data.blocks.examples
+                val new = currentState.data.data.blocks.catalog
 
-                    Categories(categories)
-                    Vip(vip)
-                    Shares(sharesState, sharesNestedScrollConnection, shares)
-                    Popular(popularState, popularNestedScrollConnection, popular)
-                    Certificates()
-                    Examples(examples)
-                    New(new)
-                }
+                Categories(categories)
+                Vip(vip)
+                Shares(sharesState, sharesNestedScrollConnection, shares)
+                Popular(popularState, popularNestedScrollConnection, popular)
+                Certificates()
+                Examples(examples)
+                New(new)
             }
 
             is HomeState.Error -> {
-                ErrorBlock{
+                ErrorBlock {
                     viewModel.handleIntent(HomeIntent.LoadData)
                 }
             }
@@ -157,10 +157,10 @@ fun HomeScreen(
 
 @Composable
 private fun ErrorBlock(
-    onButtonClick: ()->Unit
+    onButtonClick: () -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column (horizontalAlignment = Alignment.CenterHorizontally){
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
                 modifier = Modifier.fillMaxWidth(0.7f),
                 painter = painterResource(id = R.drawable.img_error),
@@ -187,7 +187,8 @@ private fun ErrorBlock(
                     containerColor = MaterialTheme.colorScheme.tertiary,
                     contentColor = MaterialTheme.colorScheme.secondary
                 ),
-                onClick = onButtonClick ) {
+                onClick = onButtonClick
+            ) {
                 Text(
                     text = "Повторить",
                     style = MaterialTheme.typography.bodyMedium,
@@ -250,6 +251,7 @@ private fun New(
             Row(
                 modifier = Modifier
                     .width(250.dp)
+                    .wrapContentHeight()
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.secondary)
                     .padding(16.dp),
@@ -276,17 +278,17 @@ private fun New(
                 ) {
                     Text(
                         text = it.name,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary,
-                        maxLines = 2,
+                        maxLines = 1,
                         fontWeight = FontWeight.Bold,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = it.categories.joinToString(),
+                        text = it.street,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondary,
-                        maxLines = 2,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
