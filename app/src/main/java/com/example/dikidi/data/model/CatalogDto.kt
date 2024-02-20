@@ -1,5 +1,6 @@
 package com.example.dikidi.data.model
 
+import com.example.dikidi.domain.model.Catalog
 import com.google.gson.annotations.SerializedName
 
 data class CatalogDto(
@@ -22,3 +23,26 @@ data class CatalogDto(
     @SerializedName("currency") val currency: CurrencyDto,
     @SerializedName("master_id") val masterId: String? = null
 )
+
+fun CatalogDto.asEntity(): Catalog {
+    return Catalog(
+        id = id,
+        name = name,
+        image = image.asEntity(),
+        street = street,
+        house = house,
+        schedule = schedule,
+        lat = lat,
+        lng = lng,
+        categories = categories,
+        categoriesCatalog = categoriesCatalog,
+        rating = rating,
+        isMaster = isMaster,
+        award = award,
+        vipTariff = vipTariff,
+        reviewCount = reviewCount,
+        backgrounds = backgrounds,
+        currency = currency.asEntity(),
+        masterId = masterId
+    )
+}

@@ -1,5 +1,6 @@
 package com.example.dikidi.data.model
 
+import com.example.dikidi.domain.model.Data
 import com.google.gson.annotations.SerializedName
 
 data class DataDto(
@@ -9,3 +10,13 @@ data class DataDto(
     @SerializedName("blocks") val blocks: BlocksDto,
     @SerializedName("order") val order: List<String>
 )
+
+fun DataDto.asEntity(): Data {
+    return Data(
+        title = title,
+        image = image,
+        catalogCount = catalogCount,
+        blocks = blocks.asEntity(),
+        order = order
+    )
+}

@@ -1,5 +1,6 @@
 package com.example.dikidi.data.model
 
+import com.example.dikidi.domain.model.Share
 import com.google.gson.annotations.SerializedName
 
 data class ShareDto(
@@ -19,3 +20,23 @@ data class ShareDto(
     @SerializedName("company_house") val companyHouse: String,
     @SerializedName("company_image") val companyImage: String
 )
+
+fun ShareDto.asEntity(): Share {
+    return Share(
+        id = id,
+        name = name,
+        timeStart = timeStart,
+        timeStop = timeStop,
+        publicTimeStart = publicTimeStart,
+        publicTimeStop = publicTimeStop,
+        discountValue = discountValue,
+        view = view,
+        usedCount = usedCount,
+        companyId = companyId,
+        icon = icon,
+        companyName = companyName,
+        companyStreet = companyStreet,
+        companyHouse = companyHouse,
+        companyImage = companyImage
+    )
+}
