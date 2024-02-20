@@ -70,4 +70,8 @@ dependencies {
 
     implementation(libs.accompanist.insets)
     implementation(libs.androidx.ui.util)
+
+    implementation(libs.logging.interceptor)
+    implementation(libs.converter.gson)
+
 }
