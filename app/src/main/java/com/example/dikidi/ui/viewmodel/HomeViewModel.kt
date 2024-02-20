@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.dikidi.data.network.ApiFactory
 import com.example.dikidi.data.repository.RepositoryImpl
 import com.example.dikidi.domain.usecase.GetDataUseCase
+import com.example.dikidi.ui.intent.HomeIntent
 import com.example.dikidi.ui.state.HomeState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +26,15 @@ class HomeViewModel : ViewModel() {
         getData()
     }
 
-    fun getData() {
+    fun handleIntent(intent: HomeIntent) {
+        when (intent) {
+            HomeIntent.LoadData -> {
+                getData()
+            }
+        }
+    }
+
+    private fun getData() {
         viewModelScope.launch {
             getDataUseCase()
                 .onStart {

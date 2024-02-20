@@ -172,12 +172,8 @@ private fun Body(
                 .height((headerHeight - with(density) { (scroll.value).toDp() }))
                 .background(MaterialTheme.colorScheme.primary)
         )
-        Column(
-            modifier = modifier.verticalScroll(scroll)
-        ) {
-            Column(modifier = modifier.background(MaterialTheme.colorScheme.primary)) {
-                content()
-            }
+        Column(modifier = modifier.background(MaterialTheme.colorScheme.primary)) {
+            content()
         }
     }
 }
@@ -225,6 +221,9 @@ private fun Toolbar(
 fun RowScope.SearchForm(
     query: MutableState<String>,
 ) {
+    val source = remember {
+        MutableInteractionSource()
+    }
     BasicTextField(
         value = query.value,
         onValueChange = { query.value = it },
@@ -240,7 +239,7 @@ fun RowScope.SearchForm(
             singleLine = true,
             enabled = true,
             shape = RoundedCornerShape(16.dp),
-            interactionSource = MutableInteractionSource(),
+            interactionSource = source,
             contentPadding = PaddingValues(horizontal = 20.dp),
             placeholder = {
                 Text(

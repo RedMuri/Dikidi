@@ -27,6 +27,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +66,7 @@ import com.example.dikidi.R
 import com.example.dikidi.domain.model.Catalog
 import com.example.dikidi.domain.model.Share
 import com.example.dikidi.domain.model.Vip
+import com.example.dikidi.ui.intent.HomeIntent
 import com.example.dikidi.ui.state.HomeState
 import com.example.dikidi.ui.theme.DikidiTheme
 import com.example.dikidi.ui.viewmodel.HomeViewModel
@@ -81,28 +85,23 @@ private fun Preview() {
 fun MainScreen() {
 
     val context = LocalContext.current
-
     val viewModel: HomeViewModel = viewModel()
-
     val state = viewModel.homeScreenState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {
-        viewModel.getData()
+        viewModel.handleIntent(HomeIntent.LoadData)
     }
 
     val searchBarValue = remember {
         mutableStateOf("")
     }
-
     val scope = rememberCoroutineScope()
     val sharesState = rememberLazyListState()
+    val popularState = rememberLazyListState()
 
     val sharesNestedScrollConnection = remember {
         sharesNestedScrollConnectionObject(scope, sharesState)
     }
-
-    val popularState = rememberLazyListState()
-
     val popularNestedScrollConnection = remember {
         nestedScrollConnectionObject(scope, popularState)
     }
@@ -116,20 +115,22 @@ fun MainScreen() {
     ) {
         when (val currentState = state.value) {
             is HomeState.Content -> {
-                val categories = currentState.data.data.blocks.catalog
-                val vip = currentState.data.data.blocks.vip
-                val shares = currentState.data.data.blocks.shares.list
-                val popular = currentState.data.data.blocks.catalog
-                val examples = currentState.data.data.blocks.examples
-                val new = currentState.data.data.blocks.catalog
+               Column(Modifier.verticalScroll(mainScrollState)) {
+                    val categories = currentState.data.data.blocks.catalog
+                    val vip = currentState.data.data.blocks.vip
+                    val shares = currentState.data.data.blocks.shares.list
+                    val popular = currentState.data.data.blocks.catalog
+                    val examples = currentState.data.data.blocks.examples
+                    val new = currentState.data.data.blocks.catalog
 
-                Categories(categories)
-                Vip(vip)
-                Shares(sharesState, sharesNestedScrollConnection, shares)
-                Popular(popularState, popularNestedScrollConnection, popular)
-                Certificates()
-                Examples(examples)
-                New(new)
+                    Categories(categories)
+                    Vip(vip)
+                    Shares(sharesState, sharesNestedScrollConnection, shares)
+                    Popular(popularState, popularNestedScrollConnection, popular)
+                    Certificates()
+                    Examples(examples)
+                    New(new)
+                }
             }
 
             is HomeState.Error -> {
@@ -138,11 +139,7 @@ fun MainScreen() {
                 }
             }
 
-            HomeState.Initial -> Toast.makeText(
-                context,
-                "${currentState.javaClass}",
-                Toast.LENGTH_SHORT
-            ).show()
+            HomeState.Initial -> {}
 
             HomeState.Loading -> Toast.makeText(
                 context,
