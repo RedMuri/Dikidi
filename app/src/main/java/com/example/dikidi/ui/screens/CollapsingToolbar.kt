@@ -1,8 +1,6 @@
 package com.example.dikidi.ui.screens
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -21,11 +19,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeContentPadding
-import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
@@ -42,20 +37,18 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.dikidi.R
 
@@ -67,6 +60,7 @@ fun CollapsingToolbar(
     scrollState: ScrollState,
     searchQuery: MutableState<String>,
     modifier: Modifier = Modifier,
+    paddingValues: PaddingValues,
     locationName: String,
     content: @Composable () -> Unit,
 ) {
@@ -75,25 +69,25 @@ fun CollapsingToolbar(
     val headerHeightPx = with(localDensity) { headerHeight.toPx() }
     val toolbarHeightPx = with(localDensity) { toolbarHeight.toPx() }
 
-    Box(modifier = modifier) {
+    Box(modifier = modifier.background(MaterialTheme.colorScheme.primary)) {
+        Body(
+            scroll = scrollState,
+            modifier = Modifier.fillMaxSize(),
+            paddingValues = paddingValues,
+        ) {
+            content()
+        }
         Header(
             query = searchQuery,
             scroll = scrollState,
             headerHeightPx = headerHeightPx,
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             locationName = locationName
         )
-        Body(
-            scroll = scrollState,
-            modifier = Modifier.fillMaxSize(),
-            density = localDensity
-        ) {
-            content()
-        }
 
         Toolbar(
             scroll = scrollState,
+            modifier = Modifier,
             headerHeightPx = headerHeightPx,
             toolbarHeightPx = toolbarHeightPx
         )
@@ -111,8 +105,8 @@ private fun Header(
     Box(
         modifier = modifier
             .graphicsLayer {
-                translationY = -scroll.value.toFloat() / 3f // Parallax effect
-                alpha = (-1f / headerHeightPx) * scroll.value + 1
+                translationY = -scroll.value.toFloat() / 3f
+                alpha = (-1f / headerHeightPx) * 2 * scroll.value + 1
             }
     ) {
         Image(
@@ -121,7 +115,7 @@ private fun Header(
                 .matchParentSize(),
             contentScale = ContentScale.Crop,
             painter = painterResource(id = R.drawable.img_home_head_bg),
-            contentDescription = "com.example.dikidi.ui.screens.Header background"
+            contentDescription = stringResource(R.string.header_background)
         )
         Column(
             modifier = Modifier
@@ -130,7 +124,7 @@ private fun Header(
                 .padding(horizontal = 16.dp)
         ) {
             Text(
-                text = "Онлайн-запись",
+                text = stringResource(R.string.online_appointment),
                 style = MaterialTheme.typography.titleLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -147,11 +141,13 @@ private fun Header(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                SearchForm(query = query)
+                SearchForm(
+                    query = query
+                )
                 Icon(
                     modifier = Modifier.size(30.dp),
                     painter = painterResource(id = R.drawable.ic_location),
-                    contentDescription = "Icon search",
+                    contentDescription = stringResource(R.string.icon_location),
                     tint = MaterialTheme.colorScheme.secondary
                 )
             }
@@ -163,14 +159,17 @@ private fun Header(
 private fun Body(
     scroll: ScrollState,
     modifier: Modifier = Modifier,
-    density: Density,
+    paddingValues: PaddingValues,
     content: @Composable () -> Unit,
 ) {
-    Column {
-        Box(
-            modifier = Modifier
-                .height((headerHeight - with(density) { (scroll.value).toDp() }))
-                .background(MaterialTheme.colorScheme.primary)
+    Column(
+        modifier = modifier
+            .verticalScroll(scroll)
+            .padding(bottom = paddingValues.calculateBottomPadding())
+    ) {
+        Spacer(
+            Modifier
+                .height(headerHeight)
         )
         Column(modifier = modifier.background(MaterialTheme.colorScheme.primary)) {
             content()
@@ -197,6 +196,7 @@ private fun Toolbar(
     }
 
     AnimatedVisibility(
+        modifier = modifier,
         visible = showToolbar,
         enter = fadeIn(animationSpec = tween(300)),
         exit = fadeOut(animationSpec = tween(300))
@@ -204,11 +204,11 @@ private fun Toolbar(
         TopAppBar(
             title = {
                 Text(
-                    modifier = modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    text = "Главная"
+                    text = stringResource(R.string.main)
                 )
             },
             colors = TopAppBarDefaults.smallTopAppBarColors(containerColor = MaterialTheme.colorScheme.primary)
@@ -221,7 +221,7 @@ private fun Toolbar(
 fun RowScope.SearchForm(
     query: MutableState<String>,
 ) {
-    val source = remember {
+    val interactionSource = remember {
         MutableInteractionSource()
     }
     BasicTextField(
@@ -230,6 +230,7 @@ fun RowScope.SearchForm(
         modifier = Modifier
             .weight(1f)
             .height(44.dp),
+        interactionSource = interactionSource,
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyLarge
     ) { innerTextField ->
@@ -239,11 +240,11 @@ fun RowScope.SearchForm(
             singleLine = true,
             enabled = true,
             shape = RoundedCornerShape(16.dp),
-            interactionSource = source,
+            interactionSource = interactionSource,
             contentPadding = PaddingValues(horizontal = 20.dp),
             placeholder = {
                 Text(
-                    text = "Услуга, специалист или место",
+                    text = stringResource(R.string.search_placeholder),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium,
@@ -263,7 +264,7 @@ fun RowScope.SearchForm(
                         .padding(start = 12.dp)
                         .size(24.dp),
                     painter = painterResource(id = R.drawable.ic_search),
-                    contentDescription = "Icon search",
+                    contentDescription = stringResource(R.string.icon_search),
                     tint = MaterialTheme.colorScheme.onSecondary
                 )
             })
