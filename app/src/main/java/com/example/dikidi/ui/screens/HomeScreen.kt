@@ -132,11 +132,11 @@ fun MainScreen() {
                 New(new)
             }
 
-            is HomeState.Error -> Toast.makeText(
-                context,
-                "${currentState.javaClass}",
-                Toast.LENGTH_SHORT
-            ).show()
+            is HomeState.Error -> {
+                ErrorBlock{
+                    viewModel.handleIntent(HomeIntent.LoadData)
+                }
+            }
 
             HomeState.Initial -> Toast.makeText(
                 context,
@@ -149,6 +149,50 @@ fun MainScreen() {
                 "${currentState.javaClass}",
                 Toast.LENGTH_SHORT
             ).show()
+        }
+    }
+}
+
+@Composable
+private fun ErrorBlock(
+    onButtonClick: ()->Unit
+) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Column (horizontalAlignment = Alignment.CenterHorizontally){
+            Image(
+                modifier = Modifier.fillMaxWidth(0.7f),
+                painter = painterResource(id = R.drawable.img_error),
+                contentDescription = "Image error",
+                contentScale = ContentScale.FillWidth
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = "Ошибка",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = "Ошибка при соединении с сервером",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondary
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(
+                shape = RoundedCornerShape(16.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary,
+                    contentColor = MaterialTheme.colorScheme.secondary
+                ),
+                onClick = onButtonClick ) {
+                Text(
+                    text = "Повторить",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
