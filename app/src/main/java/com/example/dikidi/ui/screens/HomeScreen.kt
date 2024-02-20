@@ -1,6 +1,6 @@
 package com.example.dikidi.ui.screens
 
-import androidx.compose.foundation.ExperimentalFoundationApi
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
@@ -26,9 +25,6 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Divider
@@ -36,6 +32,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -48,6 +46,7 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -57,14 +56,18 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.example.dikidi.R
+import com.example.dikidi.domain.model.Catalog
+import com.example.dikidi.domain.model.Share
+import com.example.dikidi.domain.model.Vip
+import com.example.dikidi.ui.state.HomeState
 import com.example.dikidi.ui.theme.DikidiTheme
+import com.example.dikidi.ui.viewmodel.HomeViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-
-data class Category(
-    val name: String,
-    val imgResId: Int,
-)
 
 @Preview
 @Composable
@@ -76,54 +79,32 @@ private fun Preview() {
 
 @Composable
 fun MainScreen() {
-    val categories = listOf(
-        Category("some", R.drawable.img_home_head_bg),
-        Category("another", R.drawable.ic_launcher_background),
-        Category("first", R.drawable.ic_launcher_background),
-        Category("secundant", R.drawable.img_home_head_bg),
-        Category("you are", R.drawable.img_home_head_bg),
-        Category("gorgeous", R.drawable.img_home_head_bg),
-    )
+
+    val context = LocalContext.current
+
+    val viewModel: HomeViewModel = viewModel()
+
+    val state = viewModel.homeScreenState.collectAsState()
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getData()
+    }
 
     val searchBarValue = remember {
         mutableStateOf("")
     }
 
     val scope = rememberCoroutineScope()
-    val salesState = rememberLazyListState()
+    val sharesState = rememberLazyListState()
 
-    val salesNestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                scope.launch {
-                    if (available.x <= 0) { // scrolling forward
-                        if (available.x >= -40 && salesState.firstVisibleItemIndex != salesState.layoutInfo.totalItemsCount - 1)
-                            salesState.animateScrollToItem(salesState.firstVisibleItemIndex + 1)
-                    } else
-                        if (available.x <= 40)
-                            salesState.animateScrollToItem(salesState.firstVisibleItemIndex)
-                }
-                return Offset.Zero
-            }
-        }
+    val sharesNestedScrollConnection = remember {
+        sharesNestedScrollConnectionObject(scope, sharesState)
     }
 
     val popularState = rememberLazyListState()
 
     val popularNestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                scope.launch {
-                    if (available.x <= 0) { // scrolling forward
-                        if (available.x >= -40 && popularState.firstVisibleItemIndex != popularState.layoutInfo.totalItemsCount - 1)
-                            popularState.animateScrollToItem(popularState.firstVisibleItemIndex + 1)
-                    } else
-                        if (available.x <= 40)
-                            popularState.animateScrollToItem(popularState.firstVisibleItemIndex)
-                }
-                return Offset.Zero
-            }
-        }
+        nestedScrollConnectionObject(scope, popularState)
     }
 
     val mainScrollState: ScrollState = rememberScrollState(0)
@@ -133,26 +114,83 @@ fun MainScreen() {
         searchQuery = searchBarValue,
         locationName = "Ярославль"
     ) {
-        Categories(categories)
+        when (val currentState = state.value) {
+            is HomeState.Content -> {
+                val categories = currentState.data.data.blocks.catalog
+                val vip = currentState.data.data.blocks.vip
+                val shares = currentState.data.data.blocks.shares.list
+                val popular = currentState.data.data.blocks.catalog
+                val examples = currentState.data.data.blocks.examples
+                val new = currentState.data.data.blocks.catalog
 
-        Masters(categories)
+                Categories(categories)
+                Vip(vip)
+                Shares(sharesState, sharesNestedScrollConnection, shares)
+                Popular(popularState, popularNestedScrollConnection, popular)
+                Certificates()
+                Examples(examples)
+                New(new)
+            }
 
-        Sales(salesState, salesNestedScrollConnection, categories)
+            is HomeState.Error -> Toast.makeText(
+                context,
+                "${currentState.javaClass}",
+                Toast.LENGTH_SHORT
+            ).show()
 
-        Popular(popularState, popularNestedScrollConnection, categories)
+            HomeState.Initial -> Toast.makeText(
+                context,
+                "${currentState.javaClass}",
+                Toast.LENGTH_SHORT
+            ).show()
 
-        Certificates()
+            HomeState.Loading -> Toast.makeText(
+                context,
+                "${currentState.javaClass}",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+}
 
-        ServiceExamples(categories)
+private fun nestedScrollConnectionObject(
+    scope: CoroutineScope,
+    popularState: LazyListState,
+) = object : NestedScrollConnection {
+    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        scope.launch {
+            if (available.x <= 0) { // scrolling forward
+                if (available.x >= -40 && popularState.firstVisibleItemIndex != popularState.layoutInfo.totalItemsCount - 1)
+                    popularState.animateScrollToItem(popularState.firstVisibleItemIndex + 1)
+            } else
+                if (available.x <= 40)
+                    popularState.animateScrollToItem(popularState.firstVisibleItemIndex)
+        }
+        return Offset.Zero
+    }
+}
 
-        NewItems(categories)
+private fun sharesNestedScrollConnectionObject(
+    scope: CoroutineScope,
+    sharesState: LazyListState,
+) = object : NestedScrollConnection {
+    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        scope.launch {
+            if (available.x <= 0) { // scrolling forward
+                if (available.x >= -40 && sharesState.firstVisibleItemIndex != sharesState.layoutInfo.totalItemsCount - 1)
+                    sharesState.animateScrollToItem(sharesState.firstVisibleItemIndex + 1)
+            } else
+                if (available.x <= 40)
+                    sharesState.animateScrollToItem(sharesState.firstVisibleItemIndex)
+        }
+        return Offset.Zero
     }
 }
 
 
 @Composable
-private fun NewItems(
-    categories: List<Category>,
+private fun New(
+    new: List<Catalog>,
 ) {
     BlockTitle("Новые")
 
@@ -162,7 +200,7 @@ private fun NewItems(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(categories) {
+        items(new) {
             Row(
                 modifier = Modifier
                     .width(250.dp)
@@ -171,13 +209,19 @@ private fun NewItems(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
+                SubcomposeAsyncImage(
                     modifier = Modifier
                         .size(60.dp)
                         .clip(RoundedCornerShape(16.dp)),
+                    error = {
+                        Image(
+                            painter = painterResource(id = R.drawable.img_error),
+                            contentDescription = "Some"
+                        )
+                    },
                     contentScale = ContentScale.Crop,
-                    painter = painterResource(id = it.imgResId),
-                    contentDescription = "Image of master"
+                    model = it.image.thumb,
+                    contentDescription = "com.example.dikidi.data.model.Image of master"
                 )
                 Column(
                     modifier = Modifier
@@ -193,10 +237,10 @@ private fun NewItems(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = it.name,
+                        text = it.categories.joinToString(),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondary,
-                        maxLines = 1,
+                        maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
@@ -206,30 +250,19 @@ private fun NewItems(
 }
 
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
-private fun ServiceExamples(categories: List<Category>) {
+private fun Examples(examples: String) {
     BlockTitle("Примеры работ")
 
-    LazyHorizontalStaggeredGrid(
-        contentPadding = PaddingValues(horizontal = 16.dp),
+    AsyncImage(
         modifier = Modifier
+            .padding(horizontal = 16.dp)
             .fillMaxWidth()
-            .height(200.dp),
-        rows = StaggeredGridCells.Fixed(2),
-        horizontalItemSpacing = 8.dp,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        items(categories) {
-            Image(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(16.dp))
-                    .widthIn(100.dp, 260.dp),
-                painter = painterResource(id = it.imgResId),
-                contentDescription = "Example of work",
-                contentScale = ContentScale.Crop
-            )
-        }
-    }
+            .clip(RoundedCornerShape(16.dp)),
+        model = examples,
+        contentDescription = "Example of work",
+        contentScale = ContentScale.FillWidth
+    )
+
     Spacer(modifier = Modifier.height(16.dp))
     Text(
         modifier = Modifier
@@ -256,7 +289,7 @@ private fun Certificates() {
         modifier = Modifier.fillMaxWidth(),
         contentScale = ContentScale.Crop,
         painter = painterResource(id = R.drawable.img_certificates),
-        contentDescription = "Image certificates"
+        contentDescription = "com.example.dikidi.data.model.Image certificates"
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
@@ -280,7 +313,7 @@ private fun Certificates() {
 private fun Popular(
     popularState: LazyListState,
     popularNestedScrollConnection: NestedScrollConnection,
-    categories: List<Category>,
+    popular: List<Catalog>,
 ) {
     BlockTitle("Популярные")
 
@@ -292,7 +325,7 @@ private fun Popular(
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(categories) {
+        items(popular) {
             Row(
                 modifier = Modifier
                     .fillParentMaxWidth()
@@ -301,12 +334,18 @@ private fun Popular(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
+                SubcomposeAsyncImage(
                     modifier = Modifier
                         .size(80.dp)
                         .clip(RoundedCornerShape(16.dp)),
+                    error = {
+                        Image(
+                            painter = painterResource(id = R.drawable.img_error),
+                            contentDescription = "Some"
+                        )
+                    },
                     contentScale = ContentScale.Crop,
-                    painter = painterResource(id = it.imgResId),
+                    model = it.image.thumb,
                     contentDescription = "Image of master"
                 )
                 Column(
@@ -318,7 +357,7 @@ private fun Popular(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = it.name,
+                            text = it.rating.toString(),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSecondary,
                             maxLines = 1,
@@ -340,14 +379,14 @@ private fun Popular(
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = it.name,
+                        text = "${it.street} ${it.house}",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSecondary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = it.name,
+                        text = it.rating.toString(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.tertiary,
                         maxLines = 1,
@@ -361,22 +400,22 @@ private fun Popular(
 }
 
 @Composable
-private fun Sales(
-    salesState: LazyListState,
-    salesNestedScrollConnection: NestedScrollConnection,
-    services: List<Category>,
+private fun Shares(
+    sharesState: LazyListState,
+    sharesNestedScrollConnection: NestedScrollConnection,
+    shares: List<Share>,
 ) {
     BlockTitle("Акции")
 
     LazyRow(
-        state = salesState,
+        state = sharesState,
         modifier = Modifier
             .fillMaxWidth()
-            .nestedScroll(salesNestedScrollConnection),
+            .nestedScroll(sharesNestedScrollConnection),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(services) {
+        items(shares) {
             Column(
                 modifier = Modifier
                     .fillParentMaxWidth(0.99f)
@@ -388,10 +427,10 @@ private fun Sales(
                         .height(160.dp)
                         .fillMaxWidth()
                 ) {
-                    Image(
+                    AsyncImage(
                         modifier = Modifier
                             .fillMaxSize(),
-                        painter = painterResource(id = it.imgResId),
+                        model = it.companyImage,
                         contentDescription = "Service image",
                         contentScale = ContentScale.Crop
                     )
@@ -403,13 +442,9 @@ private fun Sales(
                         Text(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    MaterialTheme.colorScheme.secondary.copy(
-                                        0.5f
-                                    )
-                                )
+                                .background(MaterialTheme.colorScheme.secondary.copy(0.5f))
                                 .padding(horizontal = 12.dp, vertical = 4.dp),
-                            text = String.format("d%%", 10),
+                            text = String.format("%s%%", it.discountValue),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimary,
                         )
@@ -428,7 +463,7 @@ private fun Sales(
                             text = buildAnnotatedString {
                                 append("до: ")
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append("some")
+                                    append(it.publicTimeStop)
                                 }
                             },
                         )
@@ -452,7 +487,7 @@ private fun Sales(
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                             Text(
-                                text = "7",
+                                text = it.view,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onPrimary,
                             )
@@ -473,17 +508,17 @@ private fun Sales(
                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Image(
+                        AsyncImage(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(RoundedCornerShape(8.dp)),
                             contentScale = ContentScale.Crop,
-                            painter = painterResource(id = it.imgResId),
+                            model = it.icon,
                             contentDescription = "Service logo"
                         )
                         Column {
                             Text(
-                                text = it.name,
+                                text = it.companyName,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 maxLines = 1,
@@ -491,7 +526,7 @@ private fun Sales(
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = it.name,
+                                text = it.companyStreet,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSecondary,
                                 maxLines = 1,
@@ -508,7 +543,7 @@ private fun Sales(
 
 
 @Composable
-private fun Masters(masters: List<Category>) {
+private fun Vip(vip: List<Vip>) {
     BlockTitle("Премиум")
 
     Column(
@@ -518,19 +553,19 @@ private fun Masters(masters: List<Category>) {
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.secondary)
     ) {
-        masters.forEach {
+        vip.forEach {
             Row(
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
+                AsyncImage(
                     modifier = Modifier
                         .size(60.dp)
                         .clip(RoundedCornerShape(16.dp)),
                     contentScale = ContentScale.Crop,
-                    painter = painterResource(id = it.imgResId),
+                    model = it.image.thumb,
                     contentDescription = "Image of master"
                 )
                 Column(
@@ -547,7 +582,7 @@ private fun Masters(masters: List<Category>) {
                     )
                     Text(
                         modifier = Modifier.padding(horizontal = 14.dp),
-                        text = it.name,
+                        text = it.categories.joinToString(),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary,
                         maxLines = 2,
@@ -579,7 +614,7 @@ private fun Masters(masters: List<Category>) {
 }
 
 @Composable
-private fun Categories(categories: List<Category>) {
+private fun Categories(categories: List<Catalog>) {
     BlockTitle("Категории")
     LazyHorizontalGrid(
         modifier = Modifier.height(220.dp),
@@ -596,17 +631,29 @@ private fun Categories(categories: List<Category>) {
                     .clip(RoundedCornerShape(16.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Image(
+                SubcomposeAsyncImage(
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop,
-                    painter = painterResource(id = it.imgResId),
+                    model = it.image.origin,
+                    error = {
+                        Image(
+                            painter = painterResource(id = R.drawable.img_error),
+                            contentDescription = "Some"
+                        )
+                    },
                     contentDescription = "Category item"
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(0.3f))
                 )
                 Text(
                     modifier = Modifier.width(130.dp),
                     textAlign = TextAlign.Center,
                     text = it.name,
                     style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis

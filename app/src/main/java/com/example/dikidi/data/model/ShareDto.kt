@@ -2,6 +2,8 @@ package com.example.dikidi.data.model
 
 import com.example.dikidi.domain.model.Share
 import com.google.gson.annotations.SerializedName
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 data class ShareDto(
     @SerializedName("id") val id: String,
@@ -28,7 +30,7 @@ fun ShareDto.asEntity(): Share {
         timeStart = timeStart,
         timeStop = timeStop,
         publicTimeStart = publicTimeStart,
-        publicTimeStop = publicTimeStop,
+        publicTimeStop = timestampToString(publicTimeStop),
         discountValue = discountValue,
         view = view,
         usedCount = usedCount,
@@ -39,4 +41,12 @@ fun ShareDto.asEntity(): Share {
         companyHouse = companyHouse,
         companyImage = companyImage
     )
+}
+
+private fun timestampToString(timestamp: String): String {
+    val inputFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+    val outputFormat = SimpleDateFormat("d MMMM", Locale("ru", "RU")) // "ru" for Russian locale
+
+    val date = inputFormat.parse(timestamp)
+    return outputFormat.format(date?:timestamp)
 }
