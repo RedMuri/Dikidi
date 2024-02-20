@@ -1,6 +1,8 @@
 package com.example.dikidi.domain.model
 
-data class Error(
+import javax.inject.Inject
+
+data class Error @Inject constructor(
     val code: Int,
     val message: String?
 )

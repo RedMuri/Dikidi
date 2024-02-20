@@ -2,8 +2,9 @@ package com.example.dikidi.data.model
 
 import com.example.dikidi.domain.model.Vip
 import com.google.gson.annotations.SerializedName
+import javax.inject.Inject
 
-data class VipDto(
+data class VipDto @Inject constructor(
     @SerializedName("id") val id: String,
     @SerializedName("image") val image: ImageDto,
     @SerializedName("name") val name: String,

@@ -4,8 +4,9 @@ import com.example.dikidi.domain.model.Share
 import com.google.gson.annotations.SerializedName
 import java.text.SimpleDateFormat
 import java.util.Locale
+import javax.inject.Inject
 
-data class ShareDto(
+data class ShareDto @Inject constructor(
     @SerializedName("id") val id: String,
     @SerializedName("name") val name: String,
     @SerializedName("time_start") val timeStart: String,

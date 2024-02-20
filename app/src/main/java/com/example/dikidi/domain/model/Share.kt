@@ -1,6 +1,8 @@
 package com.example.dikidi.domain.model
 
-data class Share(
+import javax.inject.Inject
+
+data class Share @Inject constructor(
     val id: String,
     val name: String,
     val timeStart: String,

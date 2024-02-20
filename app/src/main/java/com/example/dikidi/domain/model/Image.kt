@@ -1,6 +1,8 @@
 package com.example.dikidi.domain.model
 
-data class Image(
+import javax.inject.Inject
+
+data class Image @Inject constructor(
     val thumb: String,
     val origin: String
 )

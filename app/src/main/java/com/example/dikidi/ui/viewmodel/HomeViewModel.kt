@@ -12,15 +12,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel : ViewModel() {
+class HomeViewModel  @Inject constructor(
+    val getDataUseCase: GetDataUseCase
+): ViewModel() {
 
     private val _homeScreenState =
         MutableStateFlow<HomeState>(HomeState.Initial)
     val homeScreenState = _homeScreenState.asStateFlow()
-
-    val getDataUseCase = GetDataUseCase(RepositoryImpl(ApiFactory.apiService))
-
 
     init {
         getData()

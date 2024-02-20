@@ -2,8 +2,9 @@ package com.example.dikidi.data.model
 
 import com.example.dikidi.domain.model.Blocks
 import com.google.gson.annotations.SerializedName
+import javax.inject.Inject
 
-data class BlocksDto(
+data class BlocksDto @Inject constructor(
     @SerializedName("vip") val vip: List<VipDto>,
     @SerializedName("shares") val shares: SharesDto,
     @SerializedName("examples") val examples: String,

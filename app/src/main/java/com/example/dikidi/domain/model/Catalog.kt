@@ -1,6 +1,8 @@
 package com.example.dikidi.domain.model
 
-data class Catalog(
+import javax.inject.Inject
+
+data class Catalog @Inject constructor(
     val id: String,
     val name: String,
     val image: Image,

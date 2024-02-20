@@ -62,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
+import com.example.dikidi.MainActivity
 import com.example.dikidi.R
 import com.example.dikidi.domain.model.Catalog
 import com.example.dikidi.domain.model.Share
@@ -85,7 +86,9 @@ private fun Preview() {
 fun MainScreen() {
 
     val context = LocalContext.current
-    val viewModel: HomeViewModel = viewModel()
+    val viewModel: HomeViewModel = viewModel(
+        factory = (LocalContext.current as MainActivity).viewModelFactory
+    )
     val state = viewModel.homeScreenState.collectAsState()
 
     LaunchedEffect(key1 = Unit) {

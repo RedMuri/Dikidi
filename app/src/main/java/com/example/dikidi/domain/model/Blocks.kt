@@ -1,6 +1,8 @@
 package com.example.dikidi.domain.model
 
-data class Blocks(
+import javax.inject.Inject
+
+data class Blocks @Inject constructor(
     val vip: List<Vip>,
     val shares: Shares,
     val examples: String,
