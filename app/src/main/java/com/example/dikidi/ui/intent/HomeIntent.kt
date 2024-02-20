@@ -2,5 +2,6 @@ package com.example.dikidi.ui.intent
 
 sealed class HomeIntent {
 
-    object LoadData: HomeIntent()
+    data object LoadData: HomeIntent()
+    data object ReloadData: HomeIntent()
 }

@@ -1,4 +1,4 @@
-package com.example.dikidi
+package com.example.dikidi.ui.main
 
 import android.app.Application
 import com.example.dikidi.di.DaggerApplicationComponent

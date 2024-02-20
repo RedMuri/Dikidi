@@ -1,6 +1,9 @@
-package com.example.dikidi.ui.screens
+package com.example.dikidi.ui.screens.home
 
-import android.widget.Toast
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
@@ -8,7 +11,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -52,6 +54,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -59,11 +62,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
-import com.example.dikidi.MainActivity
+import com.example.dikidi.ui.main.MainActivity
 import com.example.dikidi.R
 import com.example.dikidi.domain.model.Catalog
 import com.example.dikidi.domain.model.Share
@@ -73,6 +77,7 @@ import com.example.dikidi.ui.state.HomeState
 import com.example.dikidi.ui.theme.DikidiTheme
 import com.example.dikidi.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Preview
@@ -88,7 +93,6 @@ fun HomeScreen(
     paddingValues: PaddingValues,
 ) {
 
-    val context = LocalContext.current
     val viewModel: HomeViewModel = viewModel(
         factory = (LocalContext.current as MainActivity).viewModelFactory
     )
@@ -106,7 +110,7 @@ fun HomeScreen(
     val popularState = rememberLazyListState()
 
     val sharesNestedScrollConnection = remember {
-        sharesNestedScrollConnectionObject(scope, sharesState)
+        nestedScrollConnectionObject(scope, sharesState)
     }
     val popularNestedScrollConnection = remember {
         nestedScrollConnectionObject(scope, popularState)
@@ -117,40 +121,82 @@ fun HomeScreen(
     CollapsingToolbar(
         scrollState = mainScrollState,
         searchQuery = searchBarValue,
-        paddingValues = paddingValues,
-        locationName = "Ярославль"
+        locationName = stringResource(R.string.default_location_name)
     ) {
         when (val currentState = state.value) {
             is HomeState.Content -> {
-                val categories = currentState.data.data.blocks.catalog
-                val vip = currentState.data.data.blocks.vip
-                val shares = currentState.data.data.blocks.shares.list
-                val popular = currentState.data.data.blocks.catalog
-                val examples = currentState.data.data.blocks.examples
-                val new = currentState.data.data.blocks.catalog
-
-                Categories(categories)
-                Vip(vip)
-                Shares(sharesState, sharesNestedScrollConnection, shares)
-                Popular(popularState, popularNestedScrollConnection, popular)
-                Certificates()
-                Examples(examples)
-                New(new)
+                ContentBlock(
+                    mainScrollState,
+                    paddingValues,
+                    currentState,
+                    sharesState,
+                    sharesNestedScrollConnection,
+                    popularState,
+                    popularNestedScrollConnection
+                )
             }
 
             is HomeState.Error -> {
                 ErrorBlock {
-                    viewModel.handleIntent(HomeIntent.LoadData)
+                    viewModel.handleIntent(HomeIntent.ReloadData)
                 }
             }
 
-            HomeState.Initial -> {}
+            HomeState.Loading -> {
+                LoadingAnimation()
+            }
+        }
+    }
+}
 
-            HomeState.Loading -> Toast.makeText(
-                context,
-                "${currentState.javaClass}",
-                Toast.LENGTH_SHORT
-            ).show()
+private fun nestedScrollConnectionObject(
+    scope: CoroutineScope,
+    lazyListState: LazyListState,
+) = object : NestedScrollConnection {
+    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+        scope.launch {
+            if (available.x <= 0) { // scrolling forward
+                if (available.x >= -40 && lazyListState.firstVisibleItemIndex != lazyListState.layoutInfo.totalItemsCount - 1)
+                    lazyListState.animateScrollToItem(lazyListState.firstVisibleItemIndex + 1)
+            } else
+                if (available.x <= 40)
+                    lazyListState.animateScrollToItem(lazyListState.firstVisibleItemIndex)
+        }
+        return Offset.Zero
+    }
+}
+
+@Composable
+private fun ContentBlock(
+    mainScrollState: ScrollState,
+    paddingValues: PaddingValues,
+    currentState: HomeState.Content,
+    sharesState: LazyListState,
+    sharesNestedScrollConnection: NestedScrollConnection,
+    popularState: LazyListState,
+    popularNestedScrollConnection: NestedScrollConnection,
+) {
+    Column(
+        modifier = Modifier
+            .verticalScroll(mainScrollState)
+            .padding(bottom = paddingValues.calculateBottomPadding())
+    ) {
+        Spacer(Modifier.height(headerHeight))
+        Column(modifier = Modifier.background(MaterialTheme.colorScheme.primary)) {
+            val categories = currentState.data.data.blocks.catalog // for testing
+            val vip = currentState.data.data.blocks.vip
+            val shares = currentState.data.data.blocks.shares.list
+            val popular = currentState.data.data.blocks.catalog // for testing
+            val examples = currentState.data.data.blocks.examples
+            val new = currentState.data.data.blocks.catalog // for testing
+
+            Categories(categories)
+            Vip(vip)
+            Shares(sharesState, sharesNestedScrollConnection, shares)
+            Popular(popularState, popularNestedScrollConnection, popular)
+            Certificates()
+            Examples(examples)
+            New(new)
         }
     }
 }
@@ -164,18 +210,18 @@ private fun ErrorBlock(
             Image(
                 modifier = Modifier.fillMaxWidth(0.7f),
                 painter = painterResource(id = R.drawable.img_error),
-                contentDescription = "Image error",
+                contentDescription = stringResource(R.string.image_error),
                 contentScale = ContentScale.FillWidth
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(
-                text = "Ошибка",
+                text = stringResource(R.string.error),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onPrimary
             )
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "Ошибка при соединении с сервером",
+                text = stringResource(R.string.server_error),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSecondary
             )
@@ -190,56 +236,20 @@ private fun ErrorBlock(
                 onClick = onButtonClick
             ) {
                 Text(
-                    text = "Повторить",
+                    text = stringResource(R.string.repeat),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.secondary
                 )
             }
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }
-
-private fun nestedScrollConnectionObject(
-    scope: CoroutineScope,
-    popularState: LazyListState,
-) = object : NestedScrollConnection {
-    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-        scope.launch {
-            if (available.x <= 0) { // scrolling forward
-                if (available.x >= -40 && popularState.firstVisibleItemIndex != popularState.layoutInfo.totalItemsCount - 1)
-                    popularState.animateScrollToItem(popularState.firstVisibleItemIndex + 1)
-            } else
-                if (available.x <= 40)
-                    popularState.animateScrollToItem(popularState.firstVisibleItemIndex)
-        }
-        return Offset.Zero
-    }
-}
-
-private fun sharesNestedScrollConnectionObject(
-    scope: CoroutineScope,
-    sharesState: LazyListState,
-) = object : NestedScrollConnection {
-    override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-        scope.launch {
-            if (available.x <= 0) { // scrolling forward
-                if (available.x >= -40 && sharesState.firstVisibleItemIndex != sharesState.layoutInfo.totalItemsCount - 1)
-                    sharesState.animateScrollToItem(sharesState.firstVisibleItemIndex + 1)
-            } else
-                if (available.x <= 40)
-                    sharesState.animateScrollToItem(sharesState.firstVisibleItemIndex)
-        }
-        return Offset.Zero
-    }
-}
-
 
 @Composable
 private fun New(
     new: List<Catalog>,
 ) {
-    BlockTitle("Новые")
+    BlockTitle(stringResource(R.string.new_items))
 
     LazyRow(
         modifier = Modifier
@@ -264,12 +274,12 @@ private fun New(
                     error = {
                         Image(
                             painter = painterResource(id = R.drawable.img_error),
-                            contentDescription = "Some"
+                            contentDescription = stringResource(R.string.image_error)
                         )
                     },
                     contentScale = ContentScale.Crop,
                     model = it.image.thumb,
-                    contentDescription = "com.example.dikidi.data.model.Image of master"
+                    contentDescription = stringResource(R.string.company_logo)
                 )
                 Column(
                     modifier = Modifier
@@ -299,7 +309,7 @@ private fun New(
 
 @Composable
 private fun Examples(examples: String) {
-    BlockTitle("Примеры работ")
+    BlockTitle(stringResource(R.string.service_examples))
 
     AsyncImage(
         modifier = Modifier
@@ -307,7 +317,7 @@ private fun Examples(examples: String) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp)),
         model = examples,
-        contentDescription = "Example of work",
+        contentDescription = stringResource(R.string.service_example),
         contentScale = ContentScale.FillWidth
     )
 
@@ -322,7 +332,7 @@ private fun Examples(examples: String) {
                 shape = RoundedCornerShape(14.dp)
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
-        text = "Посмотреть",
+        text = stringResource(R.string.watch),
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.tertiary
@@ -331,13 +341,13 @@ private fun Examples(examples: String) {
 
 @Composable
 private fun Certificates() {
-    BlockTitle("Сертификаты")
+    BlockTitle(stringResource(R.string.sertificates))
 
     Image(
         modifier = Modifier.fillMaxWidth(),
         contentScale = ContentScale.Crop,
         painter = painterResource(id = R.drawable.img_certificates),
-        contentDescription = "com.example.dikidi.data.model.Image certificates"
+        contentDescription = stringResource(R.string.certificates_image)
     )
     Spacer(modifier = Modifier.height(8.dp))
     Text(
@@ -350,7 +360,7 @@ private fun Certificates() {
                 shape = RoundedCornerShape(14.dp)
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
-        text = "Выбрать сертификат",
+        text = stringResource(R.string.choose_sertificate),
         textAlign = TextAlign.Center,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.tertiary
@@ -363,7 +373,7 @@ private fun Popular(
     popularNestedScrollConnection: NestedScrollConnection,
     popular: List<Catalog>,
 ) {
-    BlockTitle("Популярные")
+    BlockTitle(stringResource(R.string.popular))
 
     LazyRow(
         state = popularState,
@@ -389,12 +399,12 @@ private fun Popular(
                     error = {
                         Image(
                             painter = painterResource(id = R.drawable.img_error),
-                            contentDescription = "Some"
+                            contentDescription = stringResource(id = R.string.image_error)
                         )
                     },
                     contentScale = ContentScale.Crop,
                     model = it.image.thumb,
-                    contentDescription = "Image of master"
+                    contentDescription = stringResource(id = R.string.company_logo)
                 )
                 Column(
                     modifier = Modifier
@@ -414,7 +424,7 @@ private fun Popular(
                         )
                         Icon(
                             painter = painterResource(id = R.drawable.ic_star),
-                            contentDescription = "Icon star",
+                            contentDescription = stringResource(R.string.icon_star),
                             tint = Color.Yellow
                         )
                     }
@@ -453,7 +463,7 @@ private fun Shares(
     sharesNestedScrollConnection: NestedScrollConnection,
     shares: List<Share>,
 ) {
-    BlockTitle("Акции")
+    BlockTitle(stringResource(R.string.sales))
 
     LazyRow(
         state = sharesState,
@@ -479,7 +489,7 @@ private fun Shares(
                         modifier = Modifier
                             .fillMaxSize(),
                         model = it.companyImage,
-                        contentDescription = "Service image",
+                        contentDescription = stringResource(R.string.service_image),
                         contentScale = ContentScale.Crop
                     )
                     Box(
@@ -509,7 +519,7 @@ private fun Shares(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimary,
                             text = buildAnnotatedString {
-                                append("до: ")
+                                append(stringResource(R.string.before))
                                 withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
                                     append(it.publicTimeStop)
                                 }
@@ -531,7 +541,7 @@ private fun Shares(
                             Icon(
                                 modifier = Modifier.size(16.dp),
                                 painter = painterResource(id = R.drawable.ic_eye),
-                                contentDescription = "Icon eye",
+                                contentDescription = stringResource(R.string.icon_eye),
                                 tint = MaterialTheme.colorScheme.onPrimary
                             )
                             Text(
@@ -562,7 +572,7 @@ private fun Shares(
                                 .clip(RoundedCornerShape(8.dp)),
                             contentScale = ContentScale.Crop,
                             model = it.icon,
-                            contentDescription = "Service logo"
+                            contentDescription = stringResource(R.string.service_logo)
                         )
                         Column {
                             Text(
@@ -589,10 +599,9 @@ private fun Shares(
     }
 }
 
-
 @Composable
 private fun Vip(vip: List<Vip>) {
-    BlockTitle("Премиум")
+    BlockTitle(stringResource(R.string.premium))
 
     Column(
         modifier = Modifier
@@ -614,7 +623,7 @@ private fun Vip(vip: List<Vip>) {
                         .clip(RoundedCornerShape(16.dp)),
                     contentScale = ContentScale.Crop,
                     model = it.image.thumb,
-                    contentDescription = "Image of master"
+                    contentDescription = stringResource(id = R.string.company_logo)
                 )
                 Column(
                     modifier = Modifier.weight(1f)
@@ -645,7 +654,7 @@ private fun Vip(vip: List<Vip>) {
                             shape = RoundedCornerShape(14.dp)
                         )
                         .padding(horizontal = 12.dp, vertical = 10.dp),
-                    text = "Записаться",
+                    text = stringResource(R.string.enroll),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.tertiary
                 )
@@ -663,7 +672,7 @@ private fun Vip(vip: List<Vip>) {
 
 @Composable
 private fun Categories(categories: List<Catalog>) {
-    BlockTitle("Категории")
+    BlockTitle(stringResource(R.string.categories))
     LazyHorizontalGrid(
         modifier = Modifier.height(220.dp),
         rows = GridCells.Fixed(2),
@@ -686,10 +695,10 @@ private fun Categories(categories: List<Catalog>) {
                     error = {
                         Image(
                             painter = painterResource(id = R.drawable.img_error),
-                            contentDescription = "Some"
+                            contentDescription = stringResource(id = R.string.image_error)
                         )
                     },
-                    contentDescription = "Category item"
+                    contentDescription = stringResource(R.string.category_image)
                 )
                 Box(
                     modifier = Modifier
@@ -719,4 +728,75 @@ fun BlockTitle(title: String) {
         style = MaterialTheme.typography.bodyLarge,
         color = MaterialTheme.colorScheme.onPrimary
     )
+}
+
+@Composable
+fun LoadingAnimation(
+    iconColor: Color = MaterialTheme.colorScheme.tertiary,
+    iconSize: Dp = 36.dp,
+    animationDelay: Int = 400,
+    initialAlpha: Float = 0.3f,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        val icons = listOf(
+            remember {
+                Animatable(initialValue = initialAlpha)
+            } to R.drawable.ic_home,
+            remember {
+                Animatable(initialValue = initialAlpha)
+            } to R.drawable.ic_stack,
+            remember {
+                Animatable(initialValue = initialAlpha)
+            } to R.drawable.ic_sale,
+            remember {
+                Animatable(initialValue = initialAlpha)
+            } to R.drawable.ic_notes,
+            remember {
+                Animatable(initialValue = initialAlpha)
+            } to R.drawable.ic_list
+        )
+
+        icons.forEachIndexed { index, item ->
+
+            LaunchedEffect(Unit) {
+
+                delay(timeMillis = (animationDelay / icons.size).toLong() * index)
+
+                item.first.animateTo(
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(
+                            durationMillis = animationDelay
+                        ),
+                        repeatMode = RepeatMode.Reverse
+                    )
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+        ) {
+
+            icons.forEachIndexed { index, item ->
+
+                if (index != 0) {
+                    Spacer(modifier = Modifier.width(width = 6.dp))
+                }
+
+                Icon(
+                    modifier = Modifier.size(iconSize),
+                    painter = painterResource(id = item.second),
+                    contentDescription = stringResource(R.string.animatable_icon),
+                    tint = iconColor
+                        .copy(alpha = item.first.value)
+                )
+
+            }
+        }
+    }
 }

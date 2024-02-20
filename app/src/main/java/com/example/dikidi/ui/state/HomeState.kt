@@ -4,8 +4,7 @@ import com.example.dikidi.domain.model.ApiResponse
 import javax.inject.Inject
 
 sealed class HomeState {
-    object Initial : HomeState()
-    object Loading : HomeState()
+    data object Loading : HomeState()
     data class Content @Inject constructor(val data: ApiResponse) : HomeState()
     data class Error @Inject constructor(val error: Throwable) : HomeState()
 }

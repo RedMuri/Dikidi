@@ -1,7 +1,7 @@
 package com.example.dikidi.di
 
 import android.app.Application
-import com.example.dikidi.MainActivity
+import com.example.dikidi.ui.main.MainActivity
 import dagger.BindsInstance
 import dagger.Component
 

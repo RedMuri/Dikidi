@@ -15,7 +15,7 @@ interface ApiService {
     suspend fun getDataByCity(
         @Header("Authorization") token: String = API_KEY,
         @Path("city_id") cityId: Int = DEFAULT_CITY_ID,
-    )
+    ): ApiResponseDto
 
     companion object {
 

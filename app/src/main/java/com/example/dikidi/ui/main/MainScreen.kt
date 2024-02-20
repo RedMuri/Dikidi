@@ -1,4 +1,4 @@
-package com.example.dikidi.ui
+package com.example.dikidi.ui.main
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -32,7 +32,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -43,7 +42,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.dikidi.R
 import com.example.dikidi.ui.navigation.NavigationItem
 import com.example.dikidi.ui.navigation.SetupRootNavGraph
-import com.example.dikidi.ui.screens.HomeScreen
+import com.example.dikidi.ui.screens.home.HomeScreen
 import com.example.dikidi.ui.theme.OpenSans
 
 @OptIn(ExperimentalMaterial3Api::class)

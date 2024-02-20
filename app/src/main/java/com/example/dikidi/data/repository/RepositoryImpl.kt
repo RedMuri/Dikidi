@@ -13,6 +13,6 @@ class RepositoryImpl @Inject constructor(
 ): Repository {
 
     override fun getData(): Flow<ApiResponse> = flow {
-        emit(apiService.getData().asEntity())
+        emit(apiService.getDataByCity().asEntity())
     }
 }

@@ -7,6 +7,7 @@ import com.example.dikidi.data.repository.RepositoryImpl
 import com.example.dikidi.domain.usecase.GetDataUseCase
 import com.example.dikidi.ui.intent.HomeIntent
 import com.example.dikidi.ui.state.HomeState
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
@@ -19,7 +20,7 @@ class HomeViewModel  @Inject constructor(
 ): ViewModel() {
 
     private val _homeScreenState =
-        MutableStateFlow<HomeState>(HomeState.Initial)
+        MutableStateFlow<HomeState>(HomeState.Loading)
     val homeScreenState = _homeScreenState.asStateFlow()
 
     init {
@@ -28,17 +29,19 @@ class HomeViewModel  @Inject constructor(
 
     fun handleIntent(intent: HomeIntent) {
         when (intent) {
-            HomeIntent.LoadData -> {
-                getData()
-            }
+            HomeIntent.LoadData -> getData()
+
+            HomeIntent.ReloadData -> getData(true)
         }
     }
 
-    private fun getData() {
+    private fun getData(isReload: Boolean = false) {
         viewModelScope.launch {
             getDataUseCase()
                 .onStart {
                     _homeScreenState.emit(HomeState.Loading)
+                    if (isReload)
+                        delay(1000)
                 }
                 .catch {
                     _homeScreenState.emit(HomeState.Error(it))
