@@ -1,4 +1,4 @@
-package com.example.dikidi.ui.screens.home
+package com.example.dikidi.ui.home
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
@@ -40,7 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -52,7 +52,6 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
@@ -61,50 +60,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
-import com.example.dikidi.ui.main.MainActivity
 import com.example.dikidi.R
 import com.example.dikidi.domain.model.Catalog
 import com.example.dikidi.domain.model.Share
 import com.example.dikidi.domain.model.Vip
-import com.example.dikidi.ui.intent.HomeIntent
-import com.example.dikidi.ui.state.HomeState
-import com.example.dikidi.ui.theme.DikidiTheme
-import com.example.dikidi.ui.viewmodel.HomeViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@Preview
 @Composable
-private fun Preview() {
-    DikidiTheme {
-        HomeScreen(PaddingValues())
-    }
-}
-
-@Composable
-fun HomeScreen(
+fun HomeContent(
     paddingValues: PaddingValues,
+    component: HomeComponent,
 ) {
+    val state by component.model.collectAsState()
 
-    val viewModel: HomeViewModel = viewModel(
-        factory = (LocalContext.current as MainActivity).viewModelFactory
-    )
-    val state = viewModel.homeScreenState.collectAsState()
-
-    LaunchedEffect(key1 = Unit) {
-        viewModel.handleIntent(HomeIntent.LoadData)
-    }
-
-    val searchBarValue = remember {
-        mutableStateOf("")
-    }
     val scope = rememberCoroutineScope()
     val sharesState = rememberLazyListState()
     val popularState = rememberLazyListState()
@@ -119,12 +93,12 @@ fun HomeScreen(
     val mainScrollState: ScrollState = rememberScrollState(0)
 
     CollapsingToolbar(
-        scrollState = mainScrollState,
-        searchQuery = searchBarValue,
-        locationName = stringResource(R.string.default_location_name)
+        scrollState = mainScrollState, searchQuery = state.searchQuery, onQueryChange = {
+            component.changeSearchQuery(it)
+        }, locationName = stringResource(R.string.default_location_name)
     ) {
-        when (val currentState = state.value) {
-            is HomeState.Content -> {
+        when (val currentState = state.dataState) {
+            is HomeStore.DataState.Content -> {
                 ContentBlock(
                     mainScrollState,
                     paddingValues,
@@ -136,15 +110,11 @@ fun HomeScreen(
                 )
             }
 
-            is HomeState.Error -> {
-                ErrorBlock {
-                    viewModel.handleIntent(HomeIntent.ReloadData)
-                }
+            is HomeStore.DataState.Error -> ErrorBlock {
+                component.onClickRefresh()
             }
 
-            HomeState.Loading -> {
-                LoadingAnimation()
-            }
+            HomeStore.DataState.Loading -> LoadingAnimation()
         }
     }
 }
@@ -156,11 +126,10 @@ private fun nestedScrollConnectionObject(
     override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
         scope.launch {
             if (available.x <= 0) { // scrolling forward
-                if (available.x >= -40 && lazyListState.firstVisibleItemIndex != lazyListState.layoutInfo.totalItemsCount - 1)
-                    lazyListState.animateScrollToItem(lazyListState.firstVisibleItemIndex + 1)
-            } else
-                if (available.x <= 40)
-                    lazyListState.animateScrollToItem(lazyListState.firstVisibleItemIndex)
+                if (available.x >= -40 && lazyListState.firstVisibleItemIndex != lazyListState.layoutInfo.totalItemsCount - 1) lazyListState.animateScrollToItem(
+                    lazyListState.firstVisibleItemIndex + 1
+                )
+            } else if (available.x <= 40) lazyListState.animateScrollToItem(lazyListState.firstVisibleItemIndex)
         }
         return Offset.Zero
     }
@@ -170,7 +139,7 @@ private fun nestedScrollConnectionObject(
 private fun ContentBlock(
     mainScrollState: ScrollState,
     paddingValues: PaddingValues,
-    currentState: HomeState.Content,
+    currentState: HomeStore.DataState.Content,
     sharesState: LazyListState,
     sharesNestedScrollConnection: NestedScrollConnection,
     popularState: LazyListState,
@@ -252,8 +221,7 @@ private fun New(
     BlockTitle(stringResource(R.string.new_items))
 
     LazyRow(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         contentPadding = PaddingValues(horizontal = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -264,8 +232,7 @@ private fun New(
                     .wrapContentHeight()
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.secondary)
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                    .padding(16.dp), verticalAlignment = Alignment.CenterVertically
             ) {
                 SubcomposeAsyncImage(
                     modifier = Modifier
@@ -327,9 +294,7 @@ private fun Examples(examples: String) {
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .border(
-                1.dp,
-                MaterialTheme.colorScheme.tertiary,
-                shape = RoundedCornerShape(14.dp)
+                1.dp, MaterialTheme.colorScheme.tertiary, shape = RoundedCornerShape(14.dp)
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         text = stringResource(R.string.watch),
@@ -355,9 +320,7 @@ private fun Certificates() {
             .padding(horizontal = 16.dp)
             .fillMaxWidth()
             .border(
-                1.dp,
-                MaterialTheme.colorScheme.tertiary,
-                shape = RoundedCornerShape(14.dp)
+                1.dp, MaterialTheme.colorScheme.tertiary, shape = RoundedCornerShape(14.dp)
             )
             .padding(horizontal = 12.dp, vertical = 10.dp),
         text = stringResource(R.string.choose_sertificate),
@@ -486,8 +449,7 @@ private fun Shares(
                         .fillMaxWidth()
                 ) {
                     AsyncImage(
-                        modifier = Modifier
-                            .fillMaxSize(),
+                        modifier = Modifier.fillMaxSize(),
                         model = it.companyImage,
                         contentDescription = stringResource(R.string.service_image),
                         contentScale = ContentScale.Crop
@@ -738,27 +700,19 @@ fun LoadingAnimation(
     initialAlpha: Float = 0.3f,
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center
     ) {
-        val icons = listOf(
-            remember {
-                Animatable(initialValue = initialAlpha)
-            } to R.drawable.ic_home,
-            remember {
-                Animatable(initialValue = initialAlpha)
-            } to R.drawable.ic_stack,
-            remember {
-                Animatable(initialValue = initialAlpha)
-            } to R.drawable.ic_sale,
-            remember {
-                Animatable(initialValue = initialAlpha)
-            } to R.drawable.ic_notes,
-            remember {
-                Animatable(initialValue = initialAlpha)
-            } to R.drawable.ic_list
-        )
+        val icons = listOf(remember {
+            Animatable(initialValue = initialAlpha)
+        } to R.drawable.ic_home, remember {
+            Animatable(initialValue = initialAlpha)
+        } to R.drawable.ic_stack, remember {
+            Animatable(initialValue = initialAlpha)
+        } to R.drawable.ic_sale, remember {
+            Animatable(initialValue = initialAlpha)
+        } to R.drawable.ic_notes, remember {
+            Animatable(initialValue = initialAlpha)
+        } to R.drawable.ic_list)
 
         icons.forEachIndexed { index, item ->
 
@@ -767,12 +721,10 @@ fun LoadingAnimation(
                 delay(timeMillis = (animationDelay / icons.size).toLong() * index)
 
                 item.first.animateTo(
-                    targetValue = 1f,
-                    animationSpec = infiniteRepeatable(
+                    targetValue = 1f, animationSpec = infiniteRepeatable(
                         animation = tween(
                             durationMillis = animationDelay
-                        ),
-                        repeatMode = RepeatMode.Reverse
+                        ), repeatMode = RepeatMode.Reverse
                     )
                 )
             }
@@ -792,8 +744,7 @@ fun LoadingAnimation(
                     modifier = Modifier.size(iconSize),
                     painter = painterResource(id = item.second),
                     contentDescription = stringResource(R.string.animatable_icon),
-                    tint = iconColor
-                        .copy(alpha = item.first.value)
+                    tint = iconColor.copy(alpha = item.first.value)
                 )
 
             }
