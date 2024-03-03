@@ -1,4 +1,4 @@
-package com.example.dikidi.ui.screens.home
+package com.example.dikidi.ui.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
@@ -30,7 +30,6 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +55,8 @@ private val toolbarHeight = 56.dp
 @Composable
 fun CollapsingToolbar(
     scrollState: ScrollState,
-    searchQuery: MutableState<String>,
+    searchQuery: String,
+    onQueryChange: (String)->Unit,
     modifier: Modifier = Modifier,
     locationName: String,
     content: @Composable () -> Unit,
@@ -72,6 +72,7 @@ fun CollapsingToolbar(
 
         Header(
             query = searchQuery,
+            onQueryChange = onQueryChange,
             scroll = scrollState,
             headerHeightPx = headerHeightPx,
             modifier = Modifier.fillMaxWidth(),
@@ -89,7 +90,8 @@ fun CollapsingToolbar(
 
 @Composable
 private fun Header(
-    query: MutableState<String>,
+    query: String,
+    onQueryChange: (String)->Unit,
     scroll: ScrollState,
     headerHeightPx: Float,
     modifier: Modifier = Modifier,
@@ -135,7 +137,8 @@ private fun Header(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 SearchForm(
-                    query = query
+                    query = query,
+                    onQueryChange = onQueryChange
                 )
                 Icon(
                     modifier = Modifier.size(30.dp),
@@ -190,14 +193,15 @@ private fun Toolbar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RowScope.SearchForm(
-    query: MutableState<String>,
+    query: String,
+    onQueryChange: (String)->Unit
 ) {
     val interactionSource = remember {
         MutableInteractionSource()
     }
     BasicTextField(
-        value = query.value,
-        onValueChange = { query.value = it },
+        value = query,
+        onValueChange = { onQueryChange(it) },
         modifier = Modifier
             .weight(1f)
             .height(44.dp),
@@ -205,7 +209,7 @@ fun RowScope.SearchForm(
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyLarge
     ) { innerTextField ->
-        TextFieldDefaults.TextFieldDecorationBox(value = query.value,
+        TextFieldDefaults.TextFieldDecorationBox(value = query,
             visualTransformation = VisualTransformation.None,
             innerTextField = innerTextField,
             singleLine = true,

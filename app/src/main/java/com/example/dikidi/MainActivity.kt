@@ -1,31 +1,29 @@
-package com.example.dikidi.ui.main
+package com.example.dikidi
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
+import com.arkivanov.decompose.defaultComponentContext
+import com.example.dikidi.ui.root.DefaultRootComponent
+import com.example.dikidi.ui.root.RootContent
 import com.example.dikidi.ui.theme.DikidiTheme
-import com.example.dikidi.ui.viewmodel.ViewModelFactory
 import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
 
-    private val component by lazy {
-        (application as DikidiApp).component
-    }
-
     @Inject
-    lateinit var viewModelFactory: ViewModelFactory
+    lateinit var rootComponentFactory: DefaultRootComponent.Factory
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        component.inject(this)
+        (applicationContext as DikidiApp).applicationComponent.inject(this)
         super.onCreate(savedInstanceState)
 
         enableRenderUnderSystemBar()
 
         setContent {
             DikidiTheme {
-                MainScreen()
+                RootContent(component = rootComponentFactory.create(defaultComponentContext()))
             }
         }
     }

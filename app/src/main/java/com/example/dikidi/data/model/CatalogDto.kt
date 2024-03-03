@@ -15,7 +15,7 @@ data class CatalogDto @Inject constructor(
     @SerializedName("lng") val lng: String,
     @SerializedName("categories") val categories: List<Any>,
     @SerializedName("categories_catalog") val categoriesCatalog: List<Any>,
-    @SerializedName("rating") val rating: Int,
+    @SerializedName("rating") val rating: Double,
     @SerializedName("isMaster") val isMaster: Boolean,
     @SerializedName("award") val award: String?,
     @SerializedName("vip_tariff") val vipTariff: Boolean,
