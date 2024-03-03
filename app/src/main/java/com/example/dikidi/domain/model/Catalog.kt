@@ -13,7 +13,7 @@ data class Catalog @Inject constructor(
     val lng: String,
     val categories: List<Any>,
     val categoriesCatalog: List<Any>,
-    val rating: Int,
+    val rating: Double,
     val isMaster: Boolean,
     val award: String?,
     val vipTariff: Boolean,
