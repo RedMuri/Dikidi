@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     id("kotlin-kapt")
+    alias(libs.plugins.parcelize)
 }
 
 android {
@@ -62,6 +63,7 @@ dependencies {
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
@@ -82,4 +84,11 @@ dependencies {
     kapt(libs.dagger.compiler)
 
     implementation(libs.androidx.navigation.compose)
+
+    implementation(libs.mvikotlin.main)
+    implementation(libs.mvikotlin.core)
+    implementation(libs.mvikotlin.coroutines)
+
+    implementation(libs.decompose.core)
+    implementation(libs.decompose.jetpack)
 }
