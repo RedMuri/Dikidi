@@ -8,7 +8,11 @@ interface RootComponent {
 
     val stack: Value<ChildStack<*, Child>>
 
-    val navigation: StackNavigation<Config>
+    fun onHomeTabClicked()
+    fun onCatalogTabClicked()
+    fun onSalesTabClicked()
+    fun onNotesTabClicked()
+    fun onMoreTabClicked()
 
     sealed interface Child {
 
