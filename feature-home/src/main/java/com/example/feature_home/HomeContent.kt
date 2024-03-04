@@ -64,10 +64,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
-import com.example.dikidi.R
-import com.example.dikidi.domain.model.Catalog
-import com.example.dikidi.domain.model.Share
-import com.example.dikidi.domain.model.Vip
+import com.example.domain.model.Catalog
+import com.example.domain.model.Share
+import com.example.domain.model.Vip
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

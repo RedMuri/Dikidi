@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.material)
     implementation(project(":app"))
     implementation(libs.androidx.material3.android)
+    implementation(project(":feature-home"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)

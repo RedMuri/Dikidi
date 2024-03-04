@@ -5,18 +5,15 @@ import com.arkivanov.mvikotlin.core.store.Store
 import com.arkivanov.mvikotlin.core.store.StoreFactory
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineBootstrapper
 import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
-import com.example.dikidi.domain.model.ApiResponse
-import com.example.dikidi.domain.usecase.GetDataUseCase
-import com.example.dikidi.ui.home.HomeStore.Intent
-import com.example.dikidi.ui.home.HomeStore.Label
-import com.example.dikidi.ui.home.HomeStore.State
+import com.example.domain.model.ApiResponse
+import com.example.domain.usecase.GetDataUseCase
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-interface HomeStore : Store<Intent, State, Label> {
+interface HomeStore : Store<HomeStore.Intent, HomeStore.State, HomeStore.Label> {
 
     sealed interface Intent {
 
@@ -52,9 +49,12 @@ class HomeStoreFactory @Inject constructor(
 ) {
 
     fun create(): HomeStore =
-        object : HomeStore, Store<Intent, State, Label> by storeFactory.create(
+        object : HomeStore, Store<HomeStore.Intent, HomeStore.State, HomeStore.Label> by storeFactory.create(
             name = "HomeStore",
-            initialState = State(searchQuery = "", dataState = HomeStore.DataState.Loading),
+            initialState = HomeStore.State(
+                searchQuery = "",
+                dataState = HomeStore.DataState.Loading
+            ),
             bootstrapper = BootstrapperImpl(),
             executorFactory = ::ExecutorImpl,
             reducer = ReducerImpl
@@ -97,10 +97,10 @@ class HomeStoreFactory @Inject constructor(
         }
     }
 
-    private inner class ExecutorImpl : CoroutineExecutor<Intent, Action, State, Msg, Label>() {
-        override fun executeIntent(intent: Intent, getState: () -> State) {
+    private inner class ExecutorImpl : CoroutineExecutor<HomeStore.Intent, Action, HomeStore.State, Msg, HomeStore.Label>() {
+        override fun executeIntent(intent: HomeStore.Intent, getState: () -> HomeStore.State) {
             when (intent) {
-                is Intent.ClickRefresh -> {
+                is HomeStore.Intent.ClickRefresh -> {
                     scope.launch {
                         getDataUseCase()
                             .onStart {
@@ -116,13 +116,13 @@ class HomeStoreFactory @Inject constructor(
                     }
                 }
 
-                is Intent.ChangeSearchQuery -> {
+                is HomeStore.Intent.ChangeSearchQuery -> {
                     dispatch(Msg.ChangeSearchQuery(intent.query))
                 }
             }
         }
 
-        override fun executeAction(action: Action, getState: () -> State) {
+        override fun executeAction(action: Action, getState: () -> HomeStore.State) {
             when (action) {
                 is Action.HomeContentLoaded -> {
                     dispatch(Msg.HomeContentLoaded(action.content))
@@ -139,8 +139,8 @@ class HomeStoreFactory @Inject constructor(
         }
     }
 
-    private object ReducerImpl : Reducer<State, Msg> {
-        override fun State.reduce(msg: Msg): State = when (msg) {
+    private object ReducerImpl : Reducer<HomeStore.State, Msg> {
+        override fun HomeStore.State.reduce(msg: Msg): HomeStore.State = when (msg) {
             is Msg.HomeContentLoaded -> copy(dataState = HomeStore.DataState.Content(msg.content))
 
             is Msg.HomeStartLoading -> copy(dataState = HomeStore.DataState.Loading)

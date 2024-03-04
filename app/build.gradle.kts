@@ -64,6 +64,8 @@ dependencies {
     implementation(libs.material3)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.core)
+    implementation(project(":data"))
+    implementation(project(":domain"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.espresso.core)
