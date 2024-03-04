@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 rootProject.name = "Dikidi"
 include(":app")
 include(":feature-root")
+include(":feature-home")
