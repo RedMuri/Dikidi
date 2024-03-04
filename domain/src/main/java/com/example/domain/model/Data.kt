@@ -1,4 +1,4 @@
-package com.example.dikidi.domain.model
+package com.example.domain.model
 
 import com.example.domain.model.Blocks
 import javax.inject.Inject

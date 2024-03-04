@@ -1,6 +1,6 @@
-package com.example.dikidi.data.network
+package com.example.data.network
 
-import com.example.dikidi.data.model.ApiResponseDto
+import com.example.data.model.ApiResponseDto
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST

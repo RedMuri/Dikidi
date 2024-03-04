@@ -1,5 +1,6 @@
-package com.example.dikidi.domain.model
+package com.example.domain.model
 
+import com.example.domain.model.Image
 import javax.inject.Inject
 
 data class Vip @Inject constructor(

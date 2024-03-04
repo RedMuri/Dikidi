@@ -1,5 +1,6 @@
-package com.example.dikidi.data.model
+package com.example.data.model
 
+import com.example.domain.model.Error
 import com.google.gson.annotations.SerializedName
 import javax.inject.Inject
 
@@ -8,8 +9,8 @@ data class ErrorDto @Inject constructor(
     @SerializedName("message") val message: String?
 )
 
-fun ErrorDto.asEntity(): com.example.dikidi.domain.model.Error {
-    return com.example.dikidi.domain.model.Error(
+fun ErrorDto.asEntity(): Error {
+    return Error(
         code = code,
         message = message
     )

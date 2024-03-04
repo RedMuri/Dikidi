@@ -1,4 +1,4 @@
-package com.example.dikidi.data.model
+package com.example.data.model
 
 import com.example.domain.model.Blocks
 import com.google.gson.annotations.SerializedName

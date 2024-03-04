@@ -1,6 +1,6 @@
-package com.example.dikidi.data.model
+package com.example.data.model
 
-import com.example.dikidi.domain.model.Share
+import com.example.domain.model.Share
 import com.google.gson.annotations.SerializedName
 import java.text.SimpleDateFormat
 import java.util.Locale

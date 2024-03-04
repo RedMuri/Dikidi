@@ -1,4 +1,4 @@
-package com.example.dikidi.data.network
+package com.example.data.network
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor

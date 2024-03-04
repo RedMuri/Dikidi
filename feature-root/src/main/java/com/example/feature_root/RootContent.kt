@@ -35,11 +35,10 @@ import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.jetpack.subscribeAsState
 import com.example.dikidi.R
-import com.example.dikidi.ui.home.HomeContent
 import com.example.dikidi.ui.theme.DikidiTheme
 import com.example.dikidi.ui.theme.OpenSans
+import com.example.feature_home.HomeContent
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RootContent(component: RootComponent) {
     DikidiTheme {

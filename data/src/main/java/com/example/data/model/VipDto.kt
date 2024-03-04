@@ -1,6 +1,6 @@
-package com.example.dikidi.data.model
+package com.example.data.model
 
-import com.example.dikidi.domain.model.Vip
+import com.example.domain.model.Vip
 import com.google.gson.annotations.SerializedName
 import javax.inject.Inject
 

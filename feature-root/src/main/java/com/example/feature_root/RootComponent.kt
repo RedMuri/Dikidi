@@ -2,7 +2,7 @@ package com.example.feature_root
 
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import com.example.dikidi.ui.home.HomeComponent
+import com.example.feature_home.HomeComponent
 
 interface RootComponent {
 
