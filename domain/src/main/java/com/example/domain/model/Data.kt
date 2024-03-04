@@ -1,5 +1,6 @@
 package com.example.dikidi.domain.model
 
+import com.example.domain.model.Blocks
 import javax.inject.Inject
 
 data class Data @Inject constructor(

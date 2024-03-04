@@ -1,5 +1,8 @@
-package com.example.dikidi.domain.model
+package com.example.domain.model
 
+import com.example.dikidi.domain.model.Catalog
+import com.example.dikidi.domain.model.Shares
+import com.example.dikidi.domain.model.Vip
 import javax.inject.Inject
 
 data class Blocks @Inject constructor(
