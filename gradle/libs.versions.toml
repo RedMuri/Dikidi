@@ -4,7 +4,7 @@ agp = "8.2.0-alpha15"
 coil-compose = "2.5.0"
 dagger = "2.48.1"
 dagger-compiler = "2.47"
-kotlin = "1.9.10"
+kotlin = "1.9.21"
 core-ktx = "1.12.0"
 junit = "4.13.2"
 androidx-test-ext-junit = "1.1.5"
@@ -21,8 +21,8 @@ mvikotlin = "3.2.1"
 decompose = "2.1.2"
 core = "1.41.0"
 appcompat = "1.6.1"
-material = "1.11.0"
 material3-android = "1.2.0"
+androidx-material3-android = "1.2.0"
 
 [libraries]
 accompanist-insets = { module = "com.google.accompanist:accompanist-insets", version.ref = "accompanist-insets" }
@@ -55,8 +55,7 @@ decompose-core = { group = "com.arkivanov.decompose", name = "decompose", versio
 decompose-jetpack = { group = "com.arkivanov.decompose", name = "extensions-compose-jetpack", version.ref = "decompose" }
 core = { group = "com.google.ar", name = "core", version.ref = "core" }
 appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "material3-android" }
+androidx-material3-android = { group = "androidx.compose.material3", name = "material3-android", version.ref = "androidx-material3-android" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

@@ -30,7 +30,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.3"
+        kotlinCompilerExtensionVersion = "1.5.6"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -45,7 +45,6 @@ dependencies {
 
     implementation(libs.core.ktx)
     implementation(libs.appcompat)
-    implementation(libs.material)
     implementation(libs.androidx.material3.android)
     implementation(project(":domain"))
     implementation(project(":data"))
