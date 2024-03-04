@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 class DefaultHomeComponent @AssistedInject constructor(
     private val homeStoreFactory: HomeStoreFactory,
-    @Assisted("componentContext") componentContext: ComponentContext,
+    @Assisted componentContext: ComponentContext,
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { homeStoreFactory.create() }
@@ -28,10 +28,9 @@ class DefaultHomeComponent @AssistedInject constructor(
     }
 
     @AssistedFactory
-    interface Factory {
-
-        fun create(
-            @Assisted("componentContext") componentContext: ComponentContext,
+    interface Factory : HomeComponent.Factory {
+        override fun invoke(
+            componentContext: ComponentContext,
         ): DefaultHomeComponent
     }
 }

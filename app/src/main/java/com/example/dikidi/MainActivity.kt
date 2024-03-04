@@ -5,9 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import com.arkivanov.decompose.defaultComponentContext
-import com.example.dikidi.ui.root.DefaultRootComponent
-import com.example.dikidi.ui.root.RootContent
 import com.example.dikidi.ui.theme.DikidiTheme
+import com.example.feature_root.DefaultRootComponent
+import com.example.feature_root.RootContent
 import javax.inject.Inject
 
 class MainActivity : ComponentActivity() {
@@ -23,7 +23,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             DikidiTheme {
-                RootContent(component = rootComponentFactory.create(defaultComponentContext()))
+                RootContent(component = rootComponentFactory(defaultComponentContext()))
             }
         }
     }

@@ -15,7 +15,7 @@ import kotlinx.parcelize.Parcelize
 
 class DefaultRootComponent @AssistedInject constructor(
     private val homeComponentFactory: DefaultHomeComponent.Factory,
-    @Assisted("componentContext") componentContext: ComponentContext,
+    @Assisted componentContext: ComponentContext,
 ) : RootComponent, ComponentContext by componentContext {
 
     private val navigation = StackNavigation<Config>()
@@ -32,7 +32,7 @@ class DefaultRootComponent @AssistedInject constructor(
     ): RootComponent.Child {
         return when (config) {
             is Config.Home -> {
-                val component = homeComponentFactory.create(
+                val component = homeComponentFactory(
                     componentContext = componentContext
                 )
                 RootComponent.Child.Home(component)
@@ -80,9 +80,9 @@ class DefaultRootComponent @AssistedInject constructor(
     }
 
     @AssistedFactory
-    interface Factory {
-        fun create(
-            @Assisted("componentContext") componentContext: ComponentContext,
+    interface Factory : RootComponent.Factory {
+        override fun invoke(
+            componentContext: ComponentContext
         ): DefaultRootComponent
     }
 }

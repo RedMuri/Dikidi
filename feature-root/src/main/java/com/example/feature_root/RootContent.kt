@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -34,63 +33,60 @@ import com.arkivanov.decompose.extensions.compose.jetpack.stack.Children
 import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.fade
 import com.arkivanov.decompose.extensions.compose.jetpack.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.jetpack.subscribeAsState
-import com.example.dikidi.R
-import com.example.dikidi.ui.theme.DikidiTheme
-import com.example.dikidi.ui.theme.OpenSans
 import com.example.feature_home.HomeContent
+import com.example.feature_root.ui.theme.OpenSans
 
 @Composable
 fun RootContent(component: RootComponent) {
-    DikidiTheme {
-        Children(
-            stack = component.stack,
-            animation = stackAnimation(fade())
-        ) {
-            Scaffold(
-                bottomBar = {
-                    BottomBar(component)
+    Children(
+        stack = component.stack,
+        animation = stackAnimation(fade())
+    ) {
+        Scaffold(
+            bottomBar = {
+                BottomBar(component)
+            }
+        ) { paddingValues ->
+            when (val instance = it.instance) {
+                is RootComponent.Child.Home -> {
+                    HomeContent(
+                        component = instance.component,
+                        paddingValues = paddingValues
+                    )
                 }
-            ) { paddingValues ->
-                when (val instance = it.instance) {
-                    is RootComponent.Child.Home -> {
-                        HomeContent(
-                            component = instance.component,
-                            paddingValues = paddingValues
-                        )
-                    }
 
-                    RootComponent.Child.Catalog -> {
-                        BoxPlaceholder(
-                            paddingValues,
-                            stringResource(id = R.string.navigation_item_catalog)
-                        )
-                    }
+                RootComponent.Child.Catalog -> {
+                    BoxPlaceholder(
+                        paddingValues,
+                        stringResource(id = R.string.navigation_item_catalog)
+                    )
+                }
 
-                    RootComponent.Child.More -> {
-                        BoxPlaceholder(
-                            paddingValues,
-                            stringResource(id = R.string.navigation_item_more)
-                        )
-                    }
+                RootComponent.Child.More -> {
+                    BoxPlaceholder(
+                        paddingValues,
+                        stringResource(id = R.string.navigation_item_more)
+                    )
+                }
 
-                    RootComponent.Child.Notes -> {
-                        BoxPlaceholder(
-                            paddingValues,
-                            stringResource(id = R.string.navigation_item_notes)
-                        )
-                    }
+                RootComponent.Child.Notes -> {
+                    BoxPlaceholder(
+                        paddingValues,
+                        stringResource(id = R.string.navigation_item_notes)
+                    )
+                }
 
-                    RootComponent.Child.Sales -> {
-                        BoxPlaceholder(
-                            paddingValues,
-                            stringResource(id = R.string.navigation_item_sales)
-                        )
-                    }
+                RootComponent.Child.Sales -> {
+                    BoxPlaceholder(
+                        paddingValues,
+                        stringResource(id = R.string.navigation_item_sales)
+                    )
                 }
             }
         }
     }
 }
+
 
 @Composable
 private fun BoxPlaceholder(paddingValues: PaddingValues, text: String) {
@@ -156,7 +152,7 @@ private fun RowScope.NavBarItemWithLabel(
     iconResId: Int,
     titleResId: Int,
     selected: Boolean,
-    onClick: ()->Unit,
+    onClick: () -> Unit,
 ) {
     NavigationBarItem(
         selected = selected,

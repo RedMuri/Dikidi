@@ -1,4 +1,4 @@
-package com.example.dikidi.di
+package com.example.data
 
 import javax.inject.Scope
 
